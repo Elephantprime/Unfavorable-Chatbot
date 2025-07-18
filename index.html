@@ -1,1 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mindset Coach Avatar</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      padding: 20px;
+    }
+    #avatar {
+      width: 100%;
+      max-width: 360px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    #chatbox {
+      width: 100%;
+      max-width: 500px;
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <video id="avatar" autoplay muted loop playsinline>
+    <source src="avatar.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+  <div id="chatbox">
+    <div id="response">Hey. I’m your mindset coach. What’s the first lie you keep telling yourself?</div>
+    <input id="userInput" placeholder="Type something..." />
+  </div>
 
+  <script src="script.js"></script>
+</body>
+</html>
