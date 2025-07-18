@@ -3,22 +3,41 @@ const response = document.getElementById('response');
 
 input.addEventListener('keydown', async (e) => {
   if (e.key === 'Enter') {
-    const userMessage = input.value;
+    const userMessage = input.value.trim();
+    if (!userMessage) return;
     input.value = '';
     response.textContent = '...thinking...';
 
-    // Replace this with GPT API call if needed
     const reply = await fakeGPT(userMessage);
     response.textContent = reply;
+    speak(reply); // 🔊 Speak the response
   }
 });
 
 async function fakeGPT(message) {
-  if (message.toLowerCase().includes('lazy')) {
-    return "You’re not lazy. You're undisciplined. Let’s fix that.";
+  const lower = message.toLowerCase();
+
+  if (lower.includes("lazy")) {
+    return "You're not lazy. You're avoiding the cost of commitment.";
   }
-  if (message.toLowerCase().includes('stuck')) {
-    return "Stuck is a story. Want to write a new one?";
+
+  if (lower.includes("stuck")) {
+    return "You're not stuck. You're pausing to avoid the fear of movement.";
   }
-  return "Good. Now say something real.";
+
+  if (lower.includes("procrastinate")) {
+    return "Procrastination is fear in disguise. And fear lies.";
+  }
+
+  return "Try again. Say something you actually believe.";
+}
+
+// 🔊 Speak function using browser TTS
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 1.0;
+  utterance.pitch = 1.1;
+  utterance.lang = 'en-US';
+  speechSynthesis.cancel(); // Stop any ongoing speech
+  speechSynthesis.speak(utterance);
 }
