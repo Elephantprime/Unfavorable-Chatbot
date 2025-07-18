@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mindset Coach Avatar</title>
+  <title>Your Digital Mindset Coach</title>
   <style>
     body {
       margin: 0;
@@ -40,16 +40,21 @@
       border-radius: 6px;
       margin-top: 10px;
     }
+    #response {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
-  <video id="avatar" autoplay muted loop playsinline>
+  <video id="avatar" autoplay loop playsinline controls>
     <source src="avatar.mp4" type="video/mp4" />
     Your browser does not support the video tag.
   </video>
+
   <div id="chatbox">
-    <div id="response">Hey. I’m your mindset coach. What’s the first lie you keep telling yourself?</div>
-    <input id="userInput" placeholder="Type something..." />
+    <div id="response">Hey. I'm your mindset coach. What lie are you ready to stop telling yourself?</div>
+    <input id="userInput" placeholder="Type your answer..." />
   </div>
 
   <script src="script.js"></script>
