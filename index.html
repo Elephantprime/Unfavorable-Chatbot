@@ -35,8 +35,11 @@
   </style>
 </head>
 <body>
-  <img src="chatbot-face.png" alt="Chatbot Face" id="face" style="width:300px;border:2px solid red;border-radius:20px;margin-bottom:30px;" onerror="this.alt='Image failed to load'; this.style.display='none'; console.error('Image failed to load');" />
+  <!-- ✅ THIS IS YOUR REAL FACE FILE -->
+  <img src="chatbot-face.png" alt="Chatbot Face" />
+
   <h1>Welcome to the Unfavorable Chatbot</h1>
+
   <div id="chat">
     <input type="text" id="userInput" placeholder="Type something dumb..." onkeydown="if(event.key==='Enter') respond()" />
     <div id="response"></div>
@@ -49,7 +52,6 @@
 
       if (!input) return;
 
-      // Your sarcastic personality layer
       const replies = [
         "Wow. Revolutionary input.",
         "Did your keyboard get stuck?",
