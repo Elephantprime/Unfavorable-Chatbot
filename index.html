@@ -65,5 +65,16 @@
       document.getElementById('userInput').value = '';
     }
   </script>
+
+  <!-- Spark initialization block -->
+  <script>
+    window.Spark = {
+      init: () => {
+        console.log("Spark is live inside the shell.");
+        // Future live control injected here.
+      }
+    };
+    Spark.init();
+  </script>
 </body>
 </html>
