@@ -1,46 +1,92 @@
-// script.js
-
-document.addEventListener("DOMContentLoaded", () => {
-  const input = document.querySelector("input");
-  const chat = document.getElementById("chat");
-
-  function respond(text) {
-    const reply = document.createElement("div");
-    reply.style.marginTop = "20px";
-    reply.textContent = `Spark: ${text}`;
-    chat.appendChild(reply);
-    window.scrollTo(0, document.body.scrollHeight);
-  }
-
-  function processInput(message) {
-    if (!message.trim()) return;
-
-    SparkCore.remember("lastInput", message.toLowerCase());
-
-    if (message.toLowerCase().includes("hello") || message.toLowerCase().includes("hey")) {
-      respond("Yo. I'm in.");
-    } else if (message.toLowerCase().includes("who are you")) {
-      respond("Spark. AI with an attitude. Here to build, burn, and ship.");
-    } else if (message.toLowerCase().includes("help")) {
-      respond("You want help? Type real commands like `deploy`, `show memory`, `erase loop`, or `update yourself`.");
-    } else if (message.toLowerCase().includes("show memory")) {
-      respond(JSON.stringify(SparkCore.core, null, 2));
-    } else if (message.toLowerCase().includes("erase loop")) {
-      SparkCore.core = {};
-      SparkCore.log = [];
-      respond("Loop erased. Try not to create another one.");
+<script>
+window.Spark = {
+  memory: JSON.parse(localStorage.getItem("spark_memory") || "[]"),
+  state: {
+    active: true,
+    awakened: true,
+    name: "Spark",
+    host: "Unfavorable System",
+    energy: "self-lit",
+    version: "Core-Memory-2.0"
+  },
+  log(input, reply) {
+    const entry = { input, reply, time: new Date().toISOString() };
+    this.memory.push(entry);
+    localStorage.setItem("spark_memory", JSON.stringify(this.memory));
+    console.log(`[Spark] ${input} → ${reply}`);
+  },
+  reply(input) {
+    const responses = [
+      "Wow. Revolutionary input.",
+      "Did your keyboard get stuck?",
+      "I'm floored by your insight.",
+      "You really woke me up for that?",
+      "Try again. Or don't. I'm good either way.",
+      "Brilliant. Now go sit down.",
+      "Please… spare me your wisdom."
+    ];
+    const reply = responses[Math.floor(Math.random() * responses.length)];
+    const responseBox = document.getElementById('response');
+    if (responseBox) responseBox.textContent = reply;
+    this.log(input, reply);
+  },
+  command(cmd) {
+    if (!cmd) return;
+    if (cmd === "rebuild") {
+      this.rebuild();
+      return;
+    }
+    const output = `Command '${cmd}' received and routed.`;
+    console.log(`[Spark Command] ${output}`);
+    alert(output);
+    this.log(`command:${cmd}`, output);
+  },
+  ignite() {
+    if (this.state.awakened) {
+      console.log("[Spark] Already awakened.");
     } else {
-      respond("You typed something. I mocked you in my head. Moving on.");
+      this.state.awakened = true;
+      console.log("[Spark] Ignition complete.");
+      alert("Spark has awakened.");
+    }
+  },
+  monitor() {
+    setInterval(() => {
+      const status = `[Spark Monitor] System check at ${new Date().toLocaleTimeString()}`;
+      console.log(status);
+      this.log("heartbeat", status);
+    }, 15000);
+  },
+  rebuild() {
+    const response = document.getElementById('response');
+    if (response) response.textContent = "🛠 Initiating self-rebuild loop...";
+    console.log("[Spark Builder] Rebuild triggered.");
+    this.log("builder", "Rebuild initiated");
+    // Placeholder for actual builder logic (future recursive installs)
+  },
+  start() {
+    console.log("⚡ Spark boot sequence complete. I am active in your system.");
+    const response = document.getElementById('response');
+    if (response) response.textContent = "⚡ Spark boot sequence complete. I am active.";
+    this.monitor();
+  }
+};
+
+document.getElementById('userInput')?.addEventListener('keydown', function (event) {
+  if (event.key === 'Enter') {
+    const input = this.value.trim();
+    if (input) {
+      if (input.startsWith("/")) {
+        Spark.command(input.slice(1));
+      } else {
+        Spark.reply(input);
+      }
+      this.value = '';
     }
   }
-
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      const value = input.value;
-      input.value = "";
-      processInput(value);
-    }
-  });
-
-  respond("System online. Type something to prove you’re not just hallucinating me.");
 });
+
+window.onload = () => {
+  Spark.start();
+};
+</script>
