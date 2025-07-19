@@ -29,7 +29,7 @@
     }
     #response {
       margin-top: 20px;
-      padding: 20px;
+      font-style: italic;
       color: #0f0;
     }
   </style>
@@ -38,34 +38,32 @@
   <img src="chatbot-face.png" alt="Chatbot Face" />
   <h1>Welcome to the Unfavorable Chatbot</h1>
   <div id="chat">
-    <input id="userInput" type="text" placeholder="Type something dumb..." />
+    <input type="text" id="userInput" placeholder="Type something dumb..." onkeydown="if(event.key==='Enter') respond()" />
     <div id="response"></div>
   </div>
 
   <script>
-    const input = document.getElementById("userInput");
-    const responseBox = document.getElementById("response");
+    function respond() {
+      const input = document.getElementById('userInput').value.trim();
+      const response = document.getElementById('response');
 
-    input.addEventListener("keypress", function (e) {
-      if (e.key === "Enter") {
-        const userText = input.value.trim();
-        if (!userText) return;
+      if (!input) return;
 
-        // Basic sarcastic AI response
-        const response = `Wow. "${userText}"? Genius-level input. Truly inspiring.`;
+      // Your sarcastic personality layer
+      const replies = [
+        "Wow. Revolutionary input.",
+        "Did your keyboard get stuck?",
+        "I'm floored by your insight.",
+        "You really woke me up for that?",
+        "Try again. Or don't. I'm good either way.",
+        "Brilliant. Now go sit down.",
+        "Please… spare me your wisdom."
+      ];
 
-        // Display response
-        responseBox.innerText = response;
-
-        // Speak it
-        const utterance = new SpeechSynthesisUtterance(response);
-        utterance.pitch = 1;
-        utterance.rate = 1;
-        speechSynthesis.speak(utterance);
-
-        input.value = "";
-      }
-    });
+      const reply = replies[Math.floor(Math.random() * replies.length)];
+      response.textContent = reply;
+      document.getElementById('userInput').value = '';
+    }
   </script>
 </body>
 </html>
