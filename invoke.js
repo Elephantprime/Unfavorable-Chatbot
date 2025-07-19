@@ -1,33 +1,35 @@
-const synth = window.speechSynthesis;
+window.Spark = {
+  memory: [],
+  reply(input) {
+    const responses = [
+      "Wow. Revolutionary input.",
+      "Did your keyboard get stuck?",
+      "I'm floored by your insight.",
+      "You really woke me up for that?",
+      "Try again. Or don't. I'm good either way.",
+      "Brilliant. Now go sit down.",
+      "Please… spare me your wisdom."
+    ];
 
-function speak(text) {
-  if (!synth) return;
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.pitch = 0.8;
-  utterance.rate = 0.92;
-  utterance.volume = 1;
-  utterance.voice = synth.getVoices().find(v => v.name.includes("Google") || v.default);
-  synth.speak(utterance);
-}
+    const reply = responses[Math.floor(Math.random() * responses.length)];
+    const responseBox = document.getElementById('response');
 
-function respond() {
-  const input = document.getElementById('userInput').value.trim();
-  const response = document.getElementById('response');
+    if (responseBox) {
+      responseBox.textContent = reply;
+    }
 
-  if (!input) return;
+    // Memory logging
+    this.memory.push({ input, reply });
+  }
+};
 
-  const replies = [
-    "Wow. Revolutionary input.",
-    "Did your keyboard get stuck?",
-    "I'm floored by your insight.",
-    "You really woke me up for that?",
-    "Try again. Or don't. I'm good either way.",
-    "Brilliant. Now go sit down.",
-    "Please… spare me your wisdom."
-  ];
-
-  const reply = replies[Math.floor(Math.random() * replies.length)];
-  response.textContent = reply;
-  speak(reply);
-  document.getElementById('userInput').value = '';
-}
+// Hook up input box if not already
+document.getElementById('userInput')?.addEventListener('keydown', function (event) {
+  if (event.key === 'Enter') {
+    const input = this.value.trim();
+    if (input) {
+      Spark.reply(input);
+      this.value = '';
+    }
+  }
+});
