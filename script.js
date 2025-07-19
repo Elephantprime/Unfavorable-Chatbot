@@ -1,30 +1,45 @@
-const botMessage = document.getElementById("bot-message");
-const userInput = document.getElementById("user-input");
+document.addEventListener("DOMContentLoaded", function () {
+  const avatar = document.getElementById("avatar");
+  const input = document.getElementById("user-input");
+  const chatLog = document.getElementById("chat-log");
 
-function typeMessage(message, speed = 40) {
-  let i = 0;
-  botMessage.innerHTML = "";
-  const typer = setInterval(() => {
-    if (i < message.length) {
-      botMessage.innerHTML += message.charAt(i);
-      i++;
-    } else {
-      clearInterval(typer);
+  // Greeting message
+  addBotMessage("Hey. I'm your mindset coach. What lie are you ready to stop telling yourself?");
+
+  input.addEventListener("keypress", function (e) {
+    if (e.key === "Enter" && input.value.trim() !== "") {
+      const userMessage = input.value.trim();
+      addUserMessage(userMessage);
+      input.value = "";
+
+      // Simulated bot response
+      setTimeout(() => {
+        addBotMessage(generateResponse(userMessage));
+      }, 1000);
     }
-  }, speed);
-}
+  });
 
-function respondToUser(text) {
-  const response = `Interesting... tell me more about why you believe "${text}" is true.`;
-  typeMessage(response);
-}
+  function addUserMessage(message) {
+    const msg = document.createElement("div");
+    msg.className = "user-message";
+    msg.textContent = message;
+    chatLog.appendChild(msg);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
 
-userInput.addEventListener("keydown", function (e) {
-  if (e.key === "Enter" && userInput.value.trim() !== "") {
-    respondToUser(userInput.value.trim());
-    userInput.value = "";
+  function addBotMessage(message) {
+    const msg = document.createElement("div");
+    msg.className = "bot-message";
+    msg.textContent = message;
+    chatLog.appendChild(msg);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  function generateResponse(input) {
+    const lower = input.toLowerCase();
+    if (lower.includes("not good enough")) return "You're not supposed to be. You're supposed to be *real*.";
+    if (lower.includes("tired")) return "Then rest. But don’t quit.";
+    if (lower.includes("alone")) return "You were never alone. You were just waiting to meet you.";
+    return "Say it again. Louder this time.";
   }
 });
-
-// Initial message
-typeMessage("Hey. I'm your mindset coach. What lie are you ready to stop telling yourself?");
