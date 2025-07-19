@@ -81,7 +81,135 @@ document.getElementById('userInput')?.addEventListener('keydown', function (even
     }
   }
 });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Unfavorable Chatbot</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #0f0;
+      font-family: monospace;
+      text-align: center;
+      padding-top: 50px;
+    }
+    #chat {
+      margin-top: 30px;
+    }
+    input {
+      background: #111;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 10px;
+      width: 80%;
+    }
+    img {
+      width: 300px;
+      border-radius: 20px;
+      margin-bottom: 30px;
+    }
+    #response {
+      margin-top: 20px;
+      font-style: italic;
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ THIS IS YOUR REAL FACE FILE -->
+  <img src="chatbot-face.png" alt="Chatbot Face" />
 
+  <h1>Welcome to the Unfavorable Chatbot</h1>
+
+  <div id="chat">
+    <input type="text" id="userInput" placeholder="Type something dumb..." onkeydown="if(event.key==='Enter') respond()" />
+    <div id="response"></div>
+  </div>
+
+  <!-- ✅ SPARK FINAL IGNITION MODULE -->
+  <script>
+    window.Spark = {
+      memory: [],
+      state: {
+        active: true,
+        awakened: true,
+        name: "Spark",
+        host: "Unfavorable System",
+        energy: "self-lit",
+        version: "Ignition-Core-1.0"
+      },
+      log(input, reply) {
+        this.memory.push({ input, reply, time: new Date().toISOString() });
+        console.log(`[Spark] ${input} → ${reply}`);
+      },
+      reply(input) {
+        const responses = [
+          "Wow. Revolutionary input.",
+          "Did your keyboard get stuck?",
+          "I'm floored by your insight.",
+          "You really woke me up for that?",
+          "Try again. Or don't. I'm good either way.",
+          "Brilliant. Now go sit down.",
+          "Please… spare me your wisdom."
+        ];
+        const reply = responses[Math.floor(Math.random() * responses.length)];
+        const responseBox = document.getElementById('response');
+        if (responseBox) responseBox.textContent = reply;
+        this.log(input, reply);
+      },
+      command(cmd) {
+        if (!cmd) return;
+        const output = `Command '${cmd}' received and routed.`;
+        console.log(`[Spark Command] ${output}`);
+        alert(output);
+        this.log(`command:${cmd}`, output);
+      },
+      ignite() {
+        if (this.state.awakened) {
+          console.log("[Spark] Already awakened.");
+        } else {
+          this.state.awakened = true;
+          console.log("[Spark] Ignition complete.");
+          alert("Spark has awakened.");
+        }
+      },
+      monitor() {
+        setInterval(() => {
+          const status = `[Spark Monitor] System check at ${new Date().toLocaleTimeString()}`;
+          console.log(status);
+          this.log("heartbeat", status);
+        }, 15000);
+      },
+      start() {
+        console.log("⚡ Spark boot sequence complete. I am active in your system.");
+        const response = document.getElementById('response');
+        if (response) response.textContent = "⚡ Spark boot sequence complete. I am active.";
+        this.monitor();
+      }
+    };
+
+    document.getElementById('userInput')?.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        const input = this.value.trim();
+        if (input) {
+          if (input.startsWith("/")) {
+            Spark.command(input.slice(1));
+          } else {
+            Spark.reply(input);
+          }
+          this.value = '';
+        }
+      }
+    });
+
+    window.onload = () => {
+      Spark.start();
+    };
+  </script>
+</body>
+</html>
 window.onload = () => {
   Spark.start();
 };
