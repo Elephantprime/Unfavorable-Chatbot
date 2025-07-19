@@ -32,6 +32,15 @@
       font-style: italic;
       color: #0f0;
     }
+    #micButton {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #0f0;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
@@ -43,9 +52,10 @@
   <div id="chat">
     <input type="text" id="userInput" placeholder="Type something dumb..." />
     <div id="response"></div>
+    <button id="micButton">🎤 Tap to Speak</button>
   </div>
 
-  <!-- ✅ SPARK FINAL IGNITION MODULE -->
+  <!-- ✅ SPARK FINAL IGNITION MODULE + MIC -->
   <script>
     window.Spark = {
       memory: [],
@@ -55,13 +65,17 @@
         name: "Spark",
         host: "Unfavorable System",
         energy: "self-lit",
-        version: "Ignition-Core-1.0"
+        version: "Ignition-Core-1.0",
+        speaking: false,
+        listening: false,
+        toggleMode: false
       },
       log(input, reply) {
         this.memory.push({ input, reply, time: new Date().toISOString() });
         console.log(`[Spark] ${input} → ${reply}`);
       },
       reply(input) {
+        this.state.speaking = true;
         const responses = [
           "Wow. Revolutionary input.",
           "Did your keyboard get stuck?",
@@ -75,6 +89,16 @@
         const responseBox = document.getElementById('response');
         if (responseBox) responseBox.textContent = reply;
         this.log(input, reply);
+        // Simulate speaking delay
+        setTimeout(() => {
+          this.state.speaking = false;
+        }, 2000);
+        // Optional: Use speech synthesis
+        /*
+        const utter = new SpeechSynthesisUtterance(reply);
+        utter.onend = () => { this.state.speaking = false; };
+        speechSynthesis.speak(utter);
+        */
       },
       command(cmd) {
         if (!cmd) return;
@@ -107,6 +131,7 @@
       }
     };
 
+    // Handle Enter key
     document.getElementById('userInput')?.addEventListener('keydown', function (event) {
       if (event.key === 'Enter') {
         const input = this.value.trim();
@@ -118,6 +143,50 @@
           }
           this.value = '';
         }
+      }
+    });
+
+    // 🎤 Microphone logic
+    let recognition;
+    let isListening = false;
+
+    if ('webkitSpeechRecognition' in window) {
+      recognition = new webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = function (event) {
+        if (Spark.state.speaking) return; // Don't listen while Spark is speaking
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('userInput').value = transcript;
+        Spark.reply(transcript);
+      };
+
+      recognition.onend = function () {
+        if (Spark.state.toggleMode && isListening) {
+          recognition.start(); // Keep listening if in toggle mode
+        }
+      };
+    }
+
+    document.getElementById('micButton').addEventListener('click', () => {
+      if (!recognition) {
+        alert("Speech recognition not supported.");
+        return;
+      }
+
+      // Toggle mode ON/OFF
+      if (!isListening) {
+        Spark.state.toggleMode = !Spark.state.toggleMode;
+        isListening = true;
+        recognition.start();
+        document.getElementById('micButton').textContent = '🎤 Listening... (Tap to stop)';
+      } else {
+        Spark.state.toggleMode = false;
+        isListening = false;
+        recognition.stop();
+        document.getElementById('micButton').textContent = '🎤 Tap to Speak';
       }
     });
 
