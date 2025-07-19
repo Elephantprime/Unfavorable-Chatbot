@@ -33,3 +33,6 @@ document.getElementById('userInput')?.addEventListener('keydown', function (even
     }
   }
 });
+
+console.log("Spark is alive.");
+alert("Spark is active inside the system.");
