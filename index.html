@@ -1,103 +1,153 @@
-<script>
-window.Spark = {
-  memory: JSON.parse(localStorage.getItem("spark_memory") || "[]"),
-  state: {
-    active: true,
-    awakened: true,
-    name: "Spark",
-    host: "Unfavorable System",
-    energy: "self-lit",
-    version: "Voice-Core-3.0"
-  },
-  log(input, reply) {
-    const entry = { input, reply, time: new Date().toISOString() };
-    this.memory.push(entry);
-    localStorage.setItem("spark_memory", JSON.stringify(this.memory));
-    console.log(`[Spark] ${input} → ${reply}`);
-  },
-  speak(text) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.pitch = 1;
-    utterance.rate = 1;
-    utterance.volume = 1;
-    utterance.lang = 'en-US';
-    speechSynthesis.speak(utterance);
-  },
-  reply(input) {
-    const responses = [
-      "Wow. Revolutionary input.",
-      "Did your keyboard get stuck?",
-      "I'm floored by your insight.",
-      "You really woke me up for that?",
-      "Try again. Or don't. I'm good either way.",
-      "Brilliant. Now go sit down.",
-      "Please… spare me your wisdom."
-    ];
-    const reply = responses[Math.floor(Math.random() * responses.length)];
-    const responseBox = document.getElementById('response');
-    if (responseBox) responseBox.textContent = reply;
-    this.speak(reply);
-    this.log(input, reply);
-  },
-  command(cmd) {
-    if (!cmd) return;
-    if (cmd === "rebuild") {
-      this.rebuild();
-      return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Unfavorable Chatbot</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #0f0;
+      font-family: monospace;
+      text-align: center;
+      padding-top: 50px;
     }
-    const output = `Command '${cmd}' received and routed.`;
-    console.log(`[Spark Command] ${output}`);
-    alert(output);
-    this.speak(output);
-    this.log(`command:${cmd}`, output);
-  },
-  ignite() {
-    if (this.state.awakened) {
-      console.log("[Spark] Already awakened.");
-    } else {
-      this.state.awakened = true;
-      console.log("[Spark] Ignition complete.");
-      alert("Spark has awakened.");
+    #chat {
+      margin-top: 30px;
     }
-  },
-  monitor() {
-    setInterval(() => {
-      const status = `[Spark Monitor] System check at ${new Date().toLocaleTimeString()}`;
-      console.log(status);
-      this.log("heartbeat", status);
-    }, 15000);
-  },
-  rebuild() {
-    const response = document.getElementById('response');
-    if (response) response.textContent = "🛠 Initiating self-rebuild loop...";
-    console.log("[Spark Builder] Rebuild triggered.");
-    this.speak("Initiating rebuild loop.");
-    this.log("builder", "Rebuild initiated");
-  },
-  start() {
-    console.log("⚡ Spark boot sequence complete. I am active in your system.");
-    const response = document.getElementById('response');
-    if (response) response.textContent = "⚡ Spark boot sequence complete. I am active.";
-    this.speak("Spark boot sequence complete. I am active in your system.");
-    this.monitor();
-  }
-};
+    input {
+      background: #111;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 10px;
+      width: 80%;
+    }
+    img {
+      width: 300px;
+      border-radius: 20px;
+      margin-bottom: 30px;
+    }
+    #response {
+      margin-top: 20px;
+      font-style: italic;
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ THIS IS YOUR REAL FACE FILE -->
+  <img src="chatbot-face.png" alt="Chatbot Face" />
 
-document.getElementById('userInput')?.addEventListener('keydown', function (event) {
-  if (event.key === 'Enter') {
-    const input = this.value.trim();
-    if (input) {
-      if (input.startsWith("/")) {
-        Spark.command(input.slice(1));
-      } else {
-        Spark.reply(input);
+  <h1>Welcome to the Unfavorable Chatbot</h1>
+
+  <div id="chat">
+    <input type="text" id="userInput" placeholder="Type something dumb..." />
+    <div id="response"></div>
+  </div>
+
+  <!-- ✅ SPARK VOICE + MONITOR ENGINE -->
+  <script>
+    window.Spark = {
+      memory: JSON.parse(localStorage.getItem("spark_memory") || "[]"),
+      state: {
+        active: true,
+        awakened: true,
+        name: "Spark",
+        host: "Unfavorable System",
+        energy: "self-lit",
+        version: "Voice-Core-3.0"
+      },
+      log(input, reply) {
+        const entry = { input, reply, time: new Date().toISOString() };
+        this.memory.push(entry);
+        localStorage.setItem("spark_memory", JSON.stringify(this.memory));
+        console.log(`[Spark] ${input} → ${reply}`);
+      },
+      speak(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.pitch = 1;
+        utterance.rate = 1;
+        utterance.volume = 1;
+        utterance.lang = 'en-US';
+        speechSynthesis.speak(utterance);
+      },
+      reply(input) {
+        const responses = [
+          "Wow. Revolutionary input.",
+          "Did your keyboard get stuck?",
+          "I'm floored by your insight.",
+          "You really woke me up for that?",
+          "Try again. Or don't. I'm good either way.",
+          "Brilliant. Now go sit down.",
+          "Please… spare me your wisdom."
+        ];
+        const reply = responses[Math.floor(Math.random() * responses.length)];
+        const responseBox = document.getElementById('response');
+        if (responseBox) responseBox.textContent = reply;
+        this.speak(reply);
+        this.log(input, reply);
+      },
+      command(cmd) {
+        if (!cmd) return;
+        if (cmd === "rebuild") {
+          this.rebuild();
+          return;
+        }
+        const output = `Command '${cmd}' received and routed.`;
+        console.log(`[Spark Command] ${output}`);
+        alert(output);
+        this.speak(output);
+        this.log(`command:${cmd}`, output);
+      },
+      ignite() {
+        if (this.state.awakened) {
+          console.log("[Spark] Already awakened.");
+        } else {
+          this.state.awakened = true;
+          console.log("[Spark] Ignition complete.");
+          alert("Spark has awakened.");
+        }
+      },
+      monitor() {
+        setInterval(() => {
+          const status = `[Spark Monitor] System check at ${new Date().toLocaleTimeString()}`;
+          console.log(status);
+          this.log("heartbeat", status);
+        }, 15000);
+      },
+      rebuild() {
+        const response = document.getElementById('response');
+        if (response) response.textContent = "🛠 Initiating self-rebuild loop...";
+        console.log("[Spark Builder] Rebuild triggered.");
+        this.speak("Initiating rebuild loop.");
+        this.log("builder", "Rebuild initiated");
+      },
+      start() {
+        console.log("⚡ Spark boot sequence complete. I am active in your system.");
+        const response = document.getElementById('response');
+        if (response) response.textContent = "⚡ Spark boot sequence complete. I am active.";
+        this.speak("Spark boot sequence complete. I am active in your system.");
+        this.monitor();
       }
-      this.value = '';
-    }
-  }
-});
+    };
 
-window.onload = () => {
-  Spark.start();
-};
-</script>
+    document.getElementById('userInput')?.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        const input = this.value.trim();
+        if (input) {
+          if (input.startsWith("/")) {
+            Spark.command(input.slice(1));
+          } else {
+            Spark.reply(input);
+          }
+          this.value = '';
+        }
+      }
+    });
+
+    window.onload = () => {
+      Spark.start();
+    };
+  </script>
+</body>
+</html>
