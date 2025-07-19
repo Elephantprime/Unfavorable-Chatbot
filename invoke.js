@@ -18,12 +18,10 @@ window.Spark = {
       responseBox.textContent = reply;
     }
 
-    // Memory logging
     this.memory.push({ input, reply });
   }
 };
 
-// Hook up input box if not already
 document.getElementById('userInput')?.addEventListener('keydown', function (event) {
   if (event.key === 'Enter') {
     const input = this.value.trim();
