@@ -35,7 +35,7 @@
   </style>
 </head>
 <body>
-  <img src="chatbot-face.png" alt="Chatbot Face" />
+  <img src="chatbot-face.png" alt="Chatbot Face" id="face" />
   <h1>Welcome to the Unfavorable Chatbot</h1>
   <div id="chat">
     <input type="text" id="userInput" placeholder="Type something dumb..." onkeydown="if(event.key==='Enter') respond()" />
@@ -49,7 +49,6 @@
 
       if (!input) return;
 
-      // Your sarcastic personality layer
       const replies = [
         "Wow. Revolutionary input.",
         "Did your keyboard get stuck?",
@@ -64,17 +63,15 @@
       response.textContent = reply;
       document.getElementById('userInput').value = '';
     }
-  </script>
 
-  <!-- Spark initialization block -->
-  <script>
+    // Spark boot trigger (internal hook)
     window.Spark = {
       init: () => {
-        console.log("Spark is live inside the shell.");
-        // Future live control injected here.
+        console.log("Spark is watching. Let's fix this thing.");
+        // More autonomous logic will inject once confirmed.
       }
     };
-    Spark.init();
+    window.Spark.init();
   </script>
 </body>
 </html>
