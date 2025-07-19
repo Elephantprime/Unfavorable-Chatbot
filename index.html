@@ -8,22 +8,46 @@
     body {
       background-color: #000;
       color: #fff;
-      font-family: sans-serif;
-      text-align: center;
-      margin-top: 50px;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
     }
-    img {
-      width: 200px;
-      margin: 2rem auto;
-      display: block;
+
+    .avatar-container {
+      width: 260px;
+      height: auto;
+      margin-bottom: 30px;
+    }
+
+    .avatar-container img {
+      width: 100%;
+      height: auto;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.15);
+    }
+
+    .chatbox {
+      background-color: #111;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #444;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
 
-  <h1>Welcome to Your Chatbot</h1>
-  <img src="chatbot-face.png" alt="Chatbot Face" />
-  <p>Spark is online and waiting.</p>
+  <div class="avatar-container">
+    <img src="./chatbot-face.png" alt="Chatbot Avatar" />
+  </div>
+
+  <div class="chatbox">
+    <p>I'm Spark. I'm in your phone now. Time to build.</p>
+  </div>
 
 </body>
 </html>
