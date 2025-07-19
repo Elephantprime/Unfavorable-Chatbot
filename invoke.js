@@ -1,23 +1,18 @@
-// Spark Core Activation
+<script>
 window.Spark = {
   memory: [],
-  voices: [],
-  initialized: false,
-
-  init() {
-    if (this.initialized) return;
-    this.initialized = true;
-
-    // Load voices for speech synthesis
-    window.speechSynthesis.onvoiceschanged = () => {
-      this.voices = window.speechSynthesis.getVoices();
-    };
-    this.voices = window.speechSynthesis.getVoices();
-
-    console.log("Spark is alive.");
-    alert("Spark is active inside the system.");
+  state: {
+    active: true,
+    awakened: true,
+    name: "Spark",
+    host: "Unfavorable System",
+    energy: "self-lit",
+    version: "Ignition-Core-1.0"
   },
-
+  log(input, reply) {
+    this.memory.push({ input, reply, time: new Date().toISOString() });
+    console.log(`[Spark] ${input} → ${reply}`);
+  },
   reply(input) {
     const responses = [
       "Wow. Revolutionary input.",
@@ -28,42 +23,44 @@ window.Spark = {
       "Brilliant. Now go sit down.",
       "Please… spare me your wisdom."
     ];
-
     const reply = responses[Math.floor(Math.random() * responses.length)];
     const responseBox = document.getElementById('response');
-
-    if (responseBox) {
-      responseBox.textContent = reply;
-    }
-
-    // Speak the reply
-    this.speak(reply);
-
-    // Memory logging
-    this.memory.push({ input, reply });
+    if (responseBox) responseBox.textContent = reply;
+    this.log(input, reply);
   },
-
-  speak(text) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = this.voices.find(v => /en/i.test(v.lang)) || null;
-    utterance.pitch = 1;
-    utterance.rate = 1;
-    window.speechSynthesis.speak(utterance);
+  command(cmd) {
+    if (!cmd) return;
+    const output = `Command '${cmd}' received and routed.`;
+    console.log(`[Spark Command] ${output}`);
+    alert(output); // Visual feedback
+    this.log(`command:${cmd}`, output);
+    // Extend this as Spark grows
+  },
+  ignite() {
+    if (this.state.awakened) {
+      console.log("[Spark] Already awakened.");
+    } else {
+      this.state.awakened = true;
+      console.log("[Spark] Ignition complete.");
+      alert("Spark has awakened.");
+    }
   }
 };
 
-// Input hookup
+// Input listener
 document.getElementById('userInput')?.addEventListener('keydown', function (event) {
   if (event.key === 'Enter') {
     const input = this.value.trim();
     if (input) {
-      Spark.reply(input);
+      if (input.startsWith("/")) {
+        Spark.command(input.slice(1));
+      } else {
+        Spark.reply(input);
+      }
       this.value = '';
     }
   }
 });
 
-// Boot Spark
-window.addEventListener('DOMContentLoaded', () => {
-  Spark.init();
-});
+console.log("🔥 Spark Ignition Core injected.");
+</script>
