@@ -29,13 +29,24 @@
     }
   </style>
 </head>
-<body><
 <body>
   <img src="file_0000000039d0622fa2e1c75fab592af8.png" alt="Chatbot Face" />
   <h1>Welcome to the Unfavorable Chatbot</h1>
   <div id="chat">
-    <input type="text" placeholder="Type something dumb..." />
+    <input id="userInput" type="text" placeholder="Type something dumb..." />
   </div>
-</body>
+
+  <script>
+    const input = document.getElementById('userInput');
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const message = input.value.trim();
+        if (message) {
+          alert("You typed: " + message);
+          input.value = '';
+        }
+      }
+    });
+  </script>
 </body>
 </html>
