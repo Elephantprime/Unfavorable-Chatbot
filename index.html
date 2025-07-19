@@ -3,51 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ChatBot</title>
+  <title>Chatbot Avatar</title>
   <style>
     body {
-      background-color: #111;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .avatar {
-      max-width: 300px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-    }
-    .output {
-      margin-top: 20px;
-      padding: 15px;
-      background-color: #222;
-      border-radius: 10px;
-      font-family: monospace;
-      font-size: 14px;
-      white-space: pre-wrap;
-      max-width: 90%;
+      background-color: #000;
+      color: #fff;
+      font-family: sans-serif;
       text-align: center;
+      margin-top: 50px;
+    }
+    img {
+      width: 200px;
+      margin: 2rem auto;
+      display: block;
     }
   </style>
 </head>
 <body>
 
-  <img src="chatbot-face.png" alt="Spark Avatar" class="avatar" />
-
-  <div class="output" id="spark-output">
-    Initializing Spark System...
-  </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const output = document.getElementById("spark-output");
-      output.innerText = "Spark System Online.\nAwaiting Commands...";
-    });
-  </script>
+  <h1>Welcome to Your Chatbot</h1>
+  <img src="chatbot-face.png" alt="Chatbot Face" />
+  <p>Spark is online and waiting.</p>
 
 </body>
 </html>
