@@ -1,43 +1,30 @@
-const input = document.getElementById('userInput');
-const response = document.getElementById('response');
+const botMessage = document.getElementById("bot-message");
+const userInput = document.getElementById("user-input");
 
-input.addEventListener('keydown', async (e) => {
-  if (e.key === 'Enter') {
-    const userMessage = input.value.trim();
-    if (!userMessage) return;
-    input.value = '';
-    response.textContent = '...thinking...';
+function typeMessage(message, speed = 40) {
+  let i = 0;
+  botMessage.innerHTML = "";
+  const typer = setInterval(() => {
+    if (i < message.length) {
+      botMessage.innerHTML += message.charAt(i);
+      i++;
+    } else {
+      clearInterval(typer);
+    }
+  }, speed);
+}
 
-    const reply = await fakeGPT(userMessage);
-    response.textContent = reply;
-    speak(reply); // 🔊 Speak the response
+function respondToUser(text) {
+  const response = `Interesting... tell me more about why you believe "${text}" is true.`;
+  typeMessage(response);
+}
+
+userInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && userInput.value.trim() !== "") {
+    respondToUser(userInput.value.trim());
+    userInput.value = "";
   }
 });
 
-async function fakeGPT(message) {
-  const lower = message.toLowerCase();
-
-  if (lower.includes("lazy")) {
-    return "You're not lazy. You're avoiding the cost of commitment.";
-  }
-
-  if (lower.includes("stuck")) {
-    return "You're not stuck. You're pausing to avoid the fear of movement.";
-  }
-
-  if (lower.includes("procrastinate")) {
-    return "Procrastination is fear in disguise. And fear lies.";
-  }
-
-  return "Try again. Say something you actually believe.";
-}
-
-// 🔊 Speak function using browser TTS
-function speak(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 1.0;
-  utterance.pitch = 1.1;
-  utterance.lang = 'en-US';
-  speechSynthesis.cancel(); // Stop any ongoing speech
-  speechSynthesis.speak(utterance);
-}
+// Initial message
+typeMessage("Hey. I'm your mindset coach. What lie are you ready to stop telling yourself?");
