@@ -3,58 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Your Digital Mindset Coach</title>
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      color: #fff;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      height: 100vh;
-      padding: 20px;
-    }
-    #avatar {
-      width: 100%;
-      max-width: 360px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-    }
-    #chatbox {
-      width: 100%;
-      max-width: 500px;
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      background: #333;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      margin-top: 10px;
-    }
-    #response {
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-  </style>
+  <title>Mindset Coach Chatbot</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-<div class="chatbot-avatar-container">
-  <img src="file_0000000039d0622fa2e1c75fab592af8" alt="Chatbot Avatar" />
-</div>
-  <source src="file_0000000039d0622fa2e1c75fab592af8.png" type="image/png">
+  <div class="container">
+    <!-- Avatar Image -->
+    <img id="avatar" src="file_0000000039d0622fa2e1c75fab592af8.png" alt="Chatbot Avatar" />
 
-  <div id="chatbox">
-    <div id="response">Hey. I'm your mindset coach. What lie are you ready to stop telling yourself?</div>
-    <input id="userInput" placeholder="Type your answer..." />
+    <!-- Prompt Text -->
+    <div class="prompt">
+      <p>Hey. I'm your mindset coach. What lie are you ready to stop telling yourself?</p>
+    </div>
+
+    <!-- Input Box -->
+    <input type="text" id="userInput" placeholder="Type your answer..."/>
   </div>
 
   <script src="script.js"></script>
