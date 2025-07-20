@@ -54,7 +54,7 @@
   <div class="output" id="responseArea">Response will appear here.</div>
 
   <script>
-    const OPENAI_API_KEY = "sk-proj-C6coNqMZxLpgf5l15OJqkTGcZl0dPTOWFTmKgiVuEwHvYkKq";
+    const OPENAI_KEY = "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";
 
     async function sendMessage() {
       const input = document.getElementById("userInput").value;
@@ -66,17 +66,16 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${OPENAI_API_KEY}`
+            "Authorization": `Bearer ${OPENAI_KEY}`
           },
           body: JSON.stringify({
             model: "gpt-4",
-            messages: [{ role: "user", content: input }],
-            max_tokens: 200
+            messages: [{ role: "user", content: input }]
           })
         });
 
         const data = await res.json();
-        const response = data.choices?.[0]?.message?.content || "No response.";
+        const response = data.choices?.[0]?.message?.content || "⚠️ reply not received";
         document.getElementById("responseArea").textContent = response;
         speakText(response);
       } catch (e) {
