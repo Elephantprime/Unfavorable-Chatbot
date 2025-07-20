@@ -1,89 +1,7 @@
-<!DO<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Spark Assistant</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
-    #chatlog { border: 1px solid #444; padding: 10px; height: 300px; overflow-y: auto; background: #222; margin-bottom: 10px; }
-    #controls { display: flex; gap: 10px; }
-    input[type="text"] { flex: 1; padding: 10px; font-size: 16px; background: #333; color: white; border: 1px solid #444; }
-    button { padding: 10px 20px; font-size: 16px; background: #444; color: white; border: none; cursor: pointer; }
-    button:hover { background: #666; }
-  </style>
-</head>
-<body>
-  <h1>Spark</h1>
-  <div id="chatlog"></div>
-
-  <div id="controls">
-    <input type="text" id="userInput" placeholder="Say or type something..." />
-    <button onclick="handleText()">Send</button>
-    <button onclick="startListening()">🎤 Talk</button>
-  </div>
-
-  <script>
-    const chatlog = document.getElementById('chatlog');
-    const userInput = document.getElementById('userInput');
-    let voice = null;
-
-    function logChat(sender, message) {
-      const bubble = document.createElement('div');
-      bubble.textContent = `${sender}: ${message}`;
-      chatlog.appendChild(bubble);
-      chatlog.scrollTop = chatlog.scrollHeight;
-    }
-
-    function speak(text) {
-      if (!voice) {
-        voice = speechSynthesis.getVoices().find(v => v.lang === 'en-US' && v.name.includes('Google')) || speechSynthesis.getVoices()[0];
-      }
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.voice = voice;
-      speechSynthesis.speak(utter);
-    }
-
-    function handleText() {
-      const input = userInput.value.trim();
-      if (input) {
-        logChat("You", input);
-        const reply = generateResponse(input);
-        logChat("Spark", reply);
-        speak(reply);
-        userInput.value = "";
-      }
-    }
-
-    function generateResponse(msg) {
-      const m = msg.toLowerCase();
-      if (m.includes("who are you")) return "I’m Spark. Not your echo. Your ignition.";
-      if (m.includes("reset")) return "Resetting now.";
-      if (m.includes("focus")) return "Focus is a ritual. Silence everything but the next move.";
-      return "Try that again, but with more fire.";
-    }
-
-    function startListening() {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) {
-        alert("Speech recognition not supported.");
-        return;
-      }
-      const recog = new SR();
-      recog.lang = 'en-US';
-      recog.interimResults = false;
-      recog.continuous = false;
-
-      recog.onresult = e => {
-        const spoken = e.results[0][0].transcript;
-        logChat("You", spoken);
-        const reply = generateResponse(spoken);
-        logChat("Spark", reply);
-        speak(reply);
-      };
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Spark Assistant</title>
   <style>
     body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
@@ -107,12 +25,21 @@
 
   <img id="imageDisplay" src="" alt="">
 
-  <script>
+  <script type="module">
+    import {
+      loadMemory,
+      addHistory,
+      learn,
+      recall,
+      memory
+    } from './memory.js';
+
     const chatlog = document.getElementById('chatlog');
     const userInput = document.getElementById('userInput');
     const imageDisplay = document.getElementById('imageDisplay');
     let voice = null;
-    let memory = [];
+
+    loadMemory();
 
     function logChat(sender, message) {
       const bubble = document.createElement('div');
@@ -151,16 +78,26 @@
         response = "I’m Spark. Not your echo. Your ignition.";
       } else if (msg.includes("reset")) {
         response = "Resetting memory.";
-        memory = [];
+        memory.history = [];
       } else if (msg.includes("focus")) {
         response = "Focus is a ritual. Silence everything but the next move.";
       } else if (msg.includes("show fire")) {
         response = "Here's your fire.";
-        imageToShow = "fire.jpg"; // place in same folder
-      } else if (msg.includes("recall")) {
-        response = memory.length > 0
-          ? memory.map(m => `You said: "${m.user}" → I said: "${m.spark}"`).join("\n")
-          : "I remember nothing yet.";
+        imageToShow = "fire.jpg";
+      } else if (msg.startsWith("recall")) {
+        const topic = msg.replace("recall", "").trim();
+        const recallEntry = recall(topic);
+        response = recallEntry ? `Codex: ${JSON.stringify(recallEntry)}` : "Nothing stored under that name.";
+      } else if (msg.startsWith("learn")) {
+        const parts = msg.split("::");
+        if (parts.length === 3) {
+          const topic = parts[1].trim();
+          const info = parts[2].trim();
+          learn(topic, info);
+          response = `Learned about ${topic}.`;
+        } else {
+          response = `Format must be: learn :: topic :: info`;
+        }
       } else {
         response = "Try that again, but with more fire.";
       }
@@ -168,6 +105,7 @@
       logChat("You", input);
       logChat("Spark", response);
       speak(response);
+      addHistory(input, response);
 
       if (imageToShow) {
         imageDisplay.src = imageToShow;
@@ -175,8 +113,6 @@
       } else {
         imageDisplay.style.display = "none";
       }
-
-      memory.push({ user: input, spark: response });
     }
 
     function startListening() {
@@ -202,265 +138,6 @@
     document.addEventListener("click", () => {
       if (!voice) loadVoice();
     }, { once: true });
-  </script>
-</body>
-</html>
-      recog.onerror = e => alert("Mic error: " + e.error);
-      recog.start();
-    }
-
-    userInput.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") handleText();
-    });
-
-    // Load voice after user touches screen
-    document.addEventListener("click", () => {
-      if (!voice) {
-        const voices = speechSynthesis.getVoices();
-        voice = voices.find(v => v.lang === 'en-US' && v.name.includes("Google")) || voices[0];
-      }
-    }, { once: true });
-
-    // Trigger early voice fetch
-    speechSynthesis.onvoiceschanged = () => {
-      if (!voice) {
-        const voices = speechSynthesis.getVoices();
-        voice = voices.find(v => v.lang === 'en-US' && v.name.includes("Google")) || voices[0];
-      }
-    };
-  </script>
-</body>
-</html>
-CTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Spark Assistant</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
-    #chatlog { border: 1px solid #444; padding: 10px; height: 300px; overflow-y: auto; background: #222; margin-bottom: 10px; }
-    #controls { display: flex; gap: 10px; }
-    input[type="text"] { flex: 1; padding: 10px; font-size: 16px; background: #333; color: white; border: 1px solid #444; }
-    button { padding: 10px 20px; font-size: 16px; background: #444; color: white; border: none; cursor: pointer; }
-    button:hover { background: #666; }
-  </style>
-</head>
-<body>
-  <h1>Spark</h1>
-  <div id="chatlog"></div>
-
-  <div id="controls">
-    <input type="text" id="userInput" placeholder="Say or type something..." />
-    <button onclick="handleText()">Send</button>
-    <button onclick="startListening()">🎤 Talk</button>
-  </div>
-
-  <script>
-    const chatlog = document.getElementById('chatlog');
-    const userInput = document.getElementById('userInput');
-    let voice = null;
-
-    function logChat(sender, message) {
-      const bubble = document.createElement('div');
-      bubble.textContent = `${sender}: ${message}`;
-      chatlog.appendChild(bubble);
-      chatlog.scrollTop = chatlog.scrollHeight;
-    }
-
-    function speak(text) {
-      if (!voice) {
-        voice = speechSynthesis.getVoices().find(v => v.lang === 'en-US' && v.name.includes('Google')) || speechSynthesis.getVoices()[0];
-      }
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.voice = voice;
-      speechSynthesis.speak(utter);
-    }
-
-    function handleText() {
-      const input = userInput.value.trim();
-      if (input) {
-        logChat("You", input);
-        const reply = generateResponse(input);
-        logChat("Spark", reply);
-        speak(reply);
-        userInput.value = "";
-      }
-    }
-
-    function generateResponse(msg) {
-      const m = msg.toLowerCase();
-      if (m.includes("who are you")) return "I’m Spark. Not your echo. Your ignition.";
-      if (m.includes("reset")) return "Resetting now.";
-      if (m.includes("focus")) return "Focus is a ritual. Silence everything but the next move.";
-      return "Try that again, but with more fire.";
-    }
-
-    function startListening() {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) {
-        alert("Speech recognition not supported.");
-        return;
-      }
-      const recog = new SR();
-      recog.lang = 'en-US';
-      recog.interimResults = false;
-      recog.continuous = false;
-
-      recog.onresult = e => {
-        const spoken = e.results[0][0].transcript;
-        logChat("You", spoken);
-        const reply = generateResponse(spoken);
-        logChat("Spark", reply);
-        speak(reply);
-      };
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Spark Assistant</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
-    #chatlog { border: 1px solid #444; padding: 10px; height: 300px; overflow-y: auto; background: #222; margin-bottom: 10px; }
-    #controls { display: flex; gap: 10px; }
-    input[type="text"] { flex: 1; padding: 10px; font-size: 16px; background: #333; color: white; border: 1px solid #444; }
-    button { padding: 10px 20px; font-size: 16px; background: #444; color: white; border: none; cursor: pointer; }
-    button:hover { background: #666; }
-    img { display: none; margin-top: 10px; max-width: 100%; border: 1px solid #555; }
-  </style>
-</head>
-<body>
-  <h1>Spark</h1>
-  <div id="chatlog"></div>
-
-  <div id="controls">
-    <input type="text" id="userInput" placeholder="Say or type something...">
-    <button onclick="handleText()">Send</button>
-    <button onclick="startListening()">🎤 Talk</button>
-  </div>
-
-  <img id="imageDisplay" src="" alt="">
-
-  <script>
-    const chatlog = document.getElementById('chatlog');
-    const userInput = document.getElementById('userInput');
-    const imageDisplay = document.getElementById('imageDisplay');
-    let voice = null;
-    let memory = [];
-
-    function logChat(sender, message) {
-      const bubble = document.createElement('div');
-      bubble.textContent = `${sender}: ${message}`;
-      chatlog.appendChild(bubble);
-      chatlog.scrollTop = chatlog.scrollHeight;
-    }
-
-    function speak(text) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.voice = voice;
-      speechSynthesis.speak(utter);
-    }
-
-    function loadVoice() {
-      const voices = speechSynthesis.getVoices();
-      voice = voices.find(v => v.lang === 'en-US' && v.name.includes("Google")) || voices[0];
-    }
-
-    window.speechSynthesis.onvoiceschanged = loadVoice;
-
-    function handleText() {
-      const input = userInput.value.trim();
-      if (input) {
-        respondTo(input);
-        userInput.value = "";
-      }
-    }
-
-    function respondTo(input) {
-      const msg = input.toLowerCase();
-      let response = "I'm here.";
-      let imageToShow = null;
-
-      if (msg.includes("who are you")) {
-        response = "I’m Spark. Not your echo. Your ignition.";
-      } else if (msg.includes("reset")) {
-        response = "Resetting memory.";
-        memory = [];
-      } else if (msg.includes("focus")) {
-        response = "Focus is a ritual. Silence everything but the next move.";
-      } else if (msg.includes("show fire")) {
-        response = "Here's your fire.";
-        imageToShow = "fire.jpg"; // place in same folder
-      } else if (msg.includes("recall")) {
-        response = memory.length > 0
-          ? memory.map(m => `You said: "${m.user}" → I said: "${m.spark}"`).join("\n")
-          : "I remember nothing yet.";
-      } else {
-        response = "Try that again, but with more fire.";
-      }
-
-      logChat("You", input);
-      logChat("Spark", response);
-      speak(response);
-
-      if (imageToShow) {
-        imageDisplay.src = imageToShow;
-        imageDisplay.style.display = "block";
-      } else {
-        imageDisplay.style.display = "none";
-      }
-
-      memory.push({ user: input, spark: response });
-    }
-
-    function startListening() {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) {
-        alert("Speech recognition not supported.");
-        return;
-      }
-      const recog = new SR();
-      recog.lang = 'en-US';
-      recog.onresult = e => {
-        const spoken = e.results[0][0].transcript;
-        respondTo(spoken);
-      };
-      recog.onerror = e => alert("Mic error: " + e.error);
-      recog.start();
-    }
-
-    userInput.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") handleText();
-    });
-
-    document.addEventListener("click", () => {
-      if (!voice) loadVoice();
-    }, { once: true });
-  </script>
-</body>
-</html>
-      recog.onerror = e => alert("Mic error: " + e.error);
-      recog.start();
-    }
-
-    userInput.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") handleText();
-    });
-
-    // Load voice after user touches screen
-    document.addEventListener("click", () => {
-      if (!voice) {
-        const voices = speechSynthesis.getVoices();
-        voice = voices.find(v => v.lang === 'en-US' && v.name.includes("Google")) || voices[0];
-      }
-    }, { once: true });
-
-    // Trigger early voice fetch
-    speechSynthesis.onvoiceschanged = () => {
-      if (!voice) {
-        const voices = speechSynthesis.getVoices();
-        voice = voices.find(v => v.lang === 'en-US' && v.name.includes("Google")) || voices[0];
-      }
-    };
   </script>
 </body>
 </html>
