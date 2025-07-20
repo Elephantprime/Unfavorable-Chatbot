@@ -6,9 +6,10 @@
   <style>
     body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
     #chatlog { border: 1px solid #444; padding: 10px; height: 300px; overflow-y: auto; background: #222; margin-bottom: 10px; }
-    #controls { display: flex; gap: 10px; }
+    #controls { display: flex; flex-direction: column; gap: 10px; }
+    #inputRow { display: flex; gap: 10px; }
     input[type="text"] { flex: 1; padding: 10px; font-size: 16px; background: #333; color: white; border: 1px solid #444; }
-    button { padding: 10px 20px; font-size: 16px; background: #444; color: white; border: none; cursor: pointer; }
+    button { padding: 10px; font-size: 16px; background: #444; color: white; border: none; cursor: pointer; }
     button:hover { background: #666; }
   </style>
 </head>
@@ -17,8 +18,10 @@
   <div id="chatlog"></div>
 
   <div id="controls">
-    <input type="text" id="userInput" placeholder="Say or type something...">
-    <button onclick="handleText()">Send</button>
+    <div id="inputRow">
+      <input type="text" id="userInput" placeholder="Say or type something...">
+      <button onclick="handleText()">Send</button>
+    </div>
     <button onclick="startListening()">🎤 Talk</button>
   </div>
 
@@ -35,6 +38,9 @@
     }
 
     function speak(text) {
+      if (!voice) {
+        loadVoice();
+      }
       const utter = new SpeechSynthesisUtterance(text);
       utter.voice = voice;
       speechSynthesis.speak(utter);
@@ -85,11 +91,12 @@
       recog.start();
     }
 
+    // Allow pressing "Enter" to send
     userInput.addEventListener("keydown", function(e) {
       if (e.key === "Enter") handleText();
     });
 
-    // Prime voice
+    // Wake up voices
     document.addEventListener("click", () => {
       if (!voice) loadVoice();
     }, { once: true });
