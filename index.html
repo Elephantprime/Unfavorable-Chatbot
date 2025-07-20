@@ -3,97 +3,85 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Invoke Assistant (Mock Mode)</title>
+  <title>🔥 Invoke Assistant</title>
   <style>
     body {
+      background-color: #000;
+      color: #fff;
       font-family: sans-serif;
-      background-color: #0c0c0c;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
+      padding: 20px;
     }
     textarea, button {
-      font-size: 1.2rem;
-      margin: 1rem 0;
-      width: 90%;
-      max-width: 600px;
-      padding: 0.75rem;
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      font-size: 18px;
+      border-radius: 8px;
       border: none;
-      border-radius: 10px;
     }
     textarea {
-      background-color: #1e1e1e;
-      color: white;
       height: 100px;
-      resize: vertical;
+      resize: none;
+      background: #222;
+      color: #fff;
     }
     button {
-      background-color: #333;
-      color: white;
-      cursor: pointer;
+      background: #444;
+      color: #fff;
     }
-    .output {
-      margin-top: 2rem;
-      padding: 1rem;
-      background: #1e1e1e;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 600px;
+    #response {
+      margin-top: 20px;
+      padding: 12px;
+      background: #111;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
-  <h1>🔥 Invoke Assistant (Mock Mode)</h1>
-  <textarea id="userInput" placeholder="Type something or use the mic..."></textarea>
-  <div>
-    <button onclick="sendMessage()">Send</button>
-    <button onclick="startVoice()">🎤 Speak</button>
-  </div>
-  <div class="output" id="responseArea">Response will appear here.</div>
+  <h1>🔥 Invoke Assistant</h1>
+  <textarea id="input" placeholder="Say something..."></textarea>
+  <button onclick="sendMessage()">Send</button>
+  <button onclick="startListening()">🎤 Speak</button>
+  <div id="response">...</div>
 
   <script>
+    const apiKey = "sk-...YOUR_KEY_HERE"; // <-- YOUR API KEY is already in here on your real copy
+
     async function sendMessage() {
-      const input = document.getElementById("userInput").value.trim();
-      if (!input) return;
-      document.getElementById("responseArea").textContent = "Thinking...";
-      
-      // MOCKED RESPONSE
-      setTimeout(() => {
-        const fakeReplies = [
-          "I'm here. What's on your mind?",
-          "Say more about that.",
-          "Interesting. Go deeper.",
-          "That sounds important. Why now?",
-          "I'm listening... always."
-        ];
-        const reply = fakeReplies[Math.floor(Math.random() * fakeReplies.length)];
-        document.getElementById("responseArea").textContent = reply;
-        speakText(reply);
-      }, 1000);
+      const input = document.getElementById("input").value;
+      document.getElementById("response").textContent = "Thinking...";
+
+      const result = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: input }]
+        })
+      });
+
+      const data = await result.json();
+      const reply = data.choices?.[0]?.message?.content || "⚠️ No reply received.";
+      document.getElementById("response").textContent = reply;
+      speak(reply);
     }
 
-    function speakText(text) {
-      const synth = window.speechSynthesis;
-      if (!synth) return;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "en-US";
-      synth.speak(utter);
+    function speak(text) {
+      const msg = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(msg);
     }
 
-    function startVoice() {
+    function startListening() {
       const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
       recognition.lang = "en-US";
-      recognition.start();
-      recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        document.getElementById("userInput").value = transcript;
+      recognition.onresult = (event) => {
+        document.getElementById("input").value = event.results[0][0].transcript;
         sendMessage();
       };
-      recognition.onerror = function(event) {
-        alert("Voice error: " + event.error);
-      };
+      recognition.start();
     }
   </script>
 </body>
