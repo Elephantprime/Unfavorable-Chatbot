@@ -6,82 +6,88 @@
   <title>🔥 Invoke Assistant</title>
   <style>
     body {
-      background-color: #000;
-      color: #fff;
-      font-family: sans-serif;
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
       padding: 20px;
-    }
-    textarea, button {
-      width: 100%;
-      margin: 10px 0;
-      padding: 12px;
-      font-size: 18px;
-      border-radius: 8px;
-      border: none;
+      text-align: center;
     }
     textarea {
+      width: 90%;
       height: 100px;
-      resize: none;
-      background: #222;
-      color: #fff;
+      background-color: #222;
+      color: white;
+      border: none;
+      padding: 10px;
+      font-size: 16px;
     }
     button {
-      background: #444;
-      color: #fff;
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
     }
     #response {
       margin-top: 20px;
-      padding: 12px;
-      background: #111;
+      background-color: #222;
+      padding: 15px;
       border-radius: 8px;
     }
   </style>
 </head>
 <body>
   <h1>🔥 Invoke Assistant</h1>
-  <textarea id="input" placeholder="Say something..."></textarea>
+  <textarea id="userInput" placeholder="Say something..."></textarea><br/>
   <button onclick="sendMessage()">Send</button>
   <button onclick="startListening()">🎤 Speak</button>
-  <div id="response">...</div>
+  <div id="response">Awaiting input...</div>
 
   <script>
-    const apiKey = "sk-...YOUR_KEY_HERE"; // <-- YOUR API KEY is already in here on your real copy
+    const apiKey = "sk-YOUR-ACTUAL-KEY-HERE"; // <- your real API key
 
     async function sendMessage() {
-      const input = document.getElementById("input").value;
+      const input = document.getElementById("userInput").value;
       document.getElementById("response").textContent = "Thinking...";
 
-      const result = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: input }]
-        })
-      });
+      try {
+        const result = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: input }]
+          })
+        });
 
-      const data = await result.json();
-      const reply = data.choices?.[0]?.message?.content || "⚠️ No reply received.";
-      document.getElementById("response").textContent = reply;
-      speak(reply);
+        const data = await result.json();
+        const message = data.choices?.[0]?.message?.content || "No response.";
+        document.getElementById("response").textContent = message;
+        speakText(message);
+      } catch (error) {
+        document.getElementById("response").textContent = "Error: " + error.message;
+      }
     }
 
-    function speak(text) {
-      const msg = new SpeechSynthesisUtterance(text);
-      speechSynthesis.speak(msg);
+    function speakText(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
     }
 
     function startListening() {
       const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
       recognition.lang = "en-US";
-      recognition.onresult = (event) => {
-        document.getElementById("input").value = event.results[0][0].transcript;
+      recognition.start();
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("userInput").value = transcript;
         sendMessage();
       };
-      recognition.start();
     }
   </script>
 </body>
