@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Spark Assistant</title>
@@ -15,29 +14,25 @@
 </head>
 <body>
   <h1>Spark</h1>
-  <div id="chatlog"></div>
-
-  <div id="controls">
+  <div id="chatlog"></div>  <div id="controls">
     <input type="text" id="userInput" placeholder="Say or type something...">
     <button onclick="handleText()">Send</button>
     <button onclick="startListening()">🎤 Talk</button>
-  </div>
-
-  <img id="imageDisplay" src="" alt="">
-
-  <script type="module">
+  </div>  <img id="imageDisplay" src="" alt="">  <script type="module">
     import {
       loadMemory,
       addHistory,
       learn,
       recall,
       memory
-    } from './memery.js'; // 🟢 fixed spelling from memory.js
+    } from './memery.js';
 
     const chatlog = document.getElementById('chatlog');
     const userInput = document.getElementById('userInput');
     const imageDisplay = document.getElementById('imageDisplay');
     let voice = null;
+
+    const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY_HERE";
 
     loadMemory();
 
@@ -61,15 +56,15 @@
 
     window.speechSynthesis.onvoiceschanged = loadVoice;
 
-    function handleText() {
+    async function handleText() {
       const input = userInput.value.trim();
       if (input) {
-        respondTo(input);
         userInput.value = "";
+        await respondTo(input);
       }
     }
 
-    function respondTo(input) {
+    async function respondTo(input) {
       const msg = input.toLowerCase();
       let response = "I'm here.";
       let imageToShow = null;
@@ -99,7 +94,7 @@
           response = `Format must be: learn :: topic :: info`;
         }
       } else {
-        response = "Try that again, but with more fire.";
+        response = await queryOpenAI(input);
       }
 
       logChat("You", input);
@@ -112,6 +107,27 @@
         imageDisplay.style.display = "block";
       } else {
         imageDisplay.style.display = "none";
+      }
+    }
+
+    async function queryOpenAI(prompt) {
+      try {
+        const result = await fetch("https://api.openai.com/v1/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: "text-davinci-003",
+            prompt: prompt,
+            max_tokens: 150
+          })
+        });
+        const data = await result.json();
+        return data.choices?.[0]?.text?.trim() || "No response from OpenAI.";
+      } catch (e) {
+        return "Error contacting OpenAI: " + e.message;
       }
     }
 
@@ -138,6 +154,5 @@
     document.addEventListener("click", () => {
       if (!voice) loadVoice();
     }, { once: true });
-  </script>
-</body>
+  </script></body>
 </html>
