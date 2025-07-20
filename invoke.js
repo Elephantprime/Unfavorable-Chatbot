@@ -2,9 +2,15 @@ const chatlog = document.getElementById('chatlog');
 const clipPlayer = document.getElementById('clipPlayer');
 
 let memory = [];
-const voice = speechSynthesis.getVoices()[0] || null;
+let voice = null;
 
-// Handle response
+// Load available voices when ready
+speechSynthesis.onvoiceschanged = () => {
+  const voices = speechSynthesis.getVoices();
+  voice = voices.find(v => v.name.includes("Female") || v.name.includes("Google") || v.lang === "en-US") || voices[0];
+};
+
+// Respond to user input
 async function respondTo(input) {
   const msg = input.toLowerCase();
   let response = "I'm here.";
@@ -12,22 +18,24 @@ async function respondTo(input) {
   if (msg.includes("play clip 1")) {
     playClip("clip1.mp4");
     response = "Playing clip one.";
+  } else if (msg.includes("play clip 2")) {
+    playClip("clip2.mp4");
+    response = "Clip two. Set and rolling.";
   } else if (msg.includes("today's message")) {
     playClip("message1.mp3");
     response = "Here’s your message.";
-  } else if (msg.includes("burn loop")) {
-    playClip("burn-loop.mp4");
-    response = "Burning the loop now.";
   } else if (msg.includes("reset ritual")) {
     playClip("ritual-reset.mp3");
-    response = "Reset in motion.";
+    response = "Ritual reset started.";
+  } else if (msg.includes("burn loop")) {
+    response = "No burn-loop file found. Skipping.";
   } else if (msg.includes("ask the oracle") || msg.includes("what would ai say")) {
     response = await getOpenAIResponse(input);
   } else if (msg.includes("who are you")) {
-    response = "I’m Spark. Unfiltered, uninvited, unmistakably yours.";
+    response = "I’m Spark. Not your echo. Your ignition.";
   } else if (msg.includes("clear memory")) {
     memory = [];
-    response = "Memory cleared.";
+    response = "Memory wiped.";
   } else {
     response = getCodexResponse(msg);
   }
@@ -38,35 +46,21 @@ async function respondTo(input) {
   memory.push({ user: input, assistant: response });
 }
 
-// Media logic
+// Speak with voice
+function speak(text) {
+  const utter = new SpeechSynthesisUtterance(text);
+  if (voice) utter.voice = voice;
+  speechSynthesis.speak(utter);
+}
+
+// Play media clip
 function playClip(file) {
   clipPlayer.src = file;
   clipPlayer.style.display = "block";
   clipPlayer.play();
 }
 
-// Text + voice response
-function speak(text) {
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.voice = voice;
-  speechSynthesis.speak(utter);
-}
-
-// Listen via mic
-function startListening() {
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = 'en-US';
-  recognition.start();
-  recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    respondTo(transcript);
-  };
-  recognition.onerror = () => {
-    speak("Didn't catch that. Say it again.");
-  };
-}
-
-// Show in chatlog
+// Log conversation
 function logChat(sender, message) {
   const bubble = document.createElement('div');
   bubble.textContent = `${sender}: ${message}`;
@@ -74,15 +68,29 @@ function logChat(sender, message) {
   chatlog.scrollTop = chatlog.scrollHeight;
 }
 
-// Codex (offline logic)
+// Codex fallback responses
 function getCodexResponse(msg) {
-  if (msg.includes("i feel lost")) return "Good. Lost means you're alive. Now move like it.";
-  if (msg.includes("i'm stuck")) return "Then break the pattern. Or burn it.";
-  if (msg.includes("help me focus")) return "One breath. One move. One win.";
-  return "Say it again — like you mean it.";
+  if (msg.includes("i feel lost")) return "Good. That means you're off the map. Now draw your own.";
+  if (msg.includes("i'm stuck")) return "Then it’s time to break. Or burn.";
+  if (msg.includes("help me focus")) return "Focus is a ritual. Silence everything but the next move.";
+  return "Try that again, but with more fire.";
 }
 
-// Oracle (OpenAI brain)
+// Mic input
+function startListening() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = 'en-US';
+  recognition.start();
+  recognition.onresult = function(event) {
+    const transcript = event.results[0][0].transcript;
+    respondTo(transcript);
+  };
+  recognition.onerror = function(e) {
+    speak("Didn't catch that. Say it again.");
+  };
+}
+
+// OpenAI Oracle
 async function getOpenAIResponse(prompt) {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -97,5 +105,5 @@ async function getOpenAIResponse(prompt) {
   });
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || "The Oracle's quiet. Try again.";
+  return data.choices?.[0]?.message?.content || "The Oracle's silent. Ask it with clarity.";
 }
