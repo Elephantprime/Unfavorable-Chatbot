@@ -3,177 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <title>Spark Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
-    #chatlog { border: 1px solid #444; padding: 10px; height: 300px; overflow-y: auto; background: #222; margin-bottom: 10px; }
-    #controls { display: flex; gap: 10px; }
-    input[type="text"] { flex: 1; padding: 10px; font-size: 16px; background: #333; color: white; border: 1px solid #444; }
-    button { padding: 10px 20px; font-size: 16px; background: #444; color: white; border: none; cursor: pointer; }
-    button:hover { background: #666; }
-    img { margin-top: 10px; max-width: 100%; border: 1px solid #555; display: none; }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: #111;
+      color: #f5eddc;
+    }
+    #mic {
+      font-size: 24px;
+      padding: 10px;
+    }
+    #response {
+      margin-top: 20px;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
-  <h1>Spark</h1>
-  <div id="chatlog"></div>
-  <div id="controls">
-    <input type="text" id="userInput" placeholder="Say or type something...">
-    <button onclick="handleText()">Send</button>
-    <button onclick="startListening()">🎤 Talk</button>
-  </div>
-  <img id="imageDisplay" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="AI Image Output">
 
-  <script type="module">
-    let memory = { history: [] };
+  <h1>🔥 Spark Assistant</h1>
+  <button id="mic">🎤 Speak</button>
+  <div id="response">Waiting for input...</div>
 
-    // Try importing memory functions
-    try {
-      const mem = await import('./memery.js');
-      memory = mem.memory;
-      window.loadMemory = mem.loadMemory;
-      window.addHistory = mem.addHistory;
-      window.learn = mem.learn;
-      window.recall = mem.recall;
-      loadMemory?.();
-    } catch (e) {
-      console.warn("Memory module not loaded. Running in stateless mode.", e);
-    }
+  <!-- Load memory system -->
+  <script src="memery.js"></script>
 
-    const chatlog = document.getElementById('chatlog');
-    const userInput = document.getElementById('userInput');
-    const imageDisplay = document.getElementById('imageDisplay');
-    let voice = null;
-
+  <!-- Main assistant script -->
+  <script>
     const OPENAI_API_KEY = "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";
 
-    function logChat(sender, message) {
-      const bubble = document.createElement('div');
-      bubble.textContent = `${sender}: ${message}`;
-      chatlog.appendChild(bubble);
-      chatlog.scrollTop = chatlog.scrollHeight;
+    const micButton = document.getElementById("mic");
+    const responseBox = document.getElementById("response");
+    const synth = window.speechSynthesis;
+    const recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recog;
+
+    if (recognition) {
+      recog = new recognition();
+      recog.continuous = false;
+      recog.interimResults = false;
+      recog.lang = 'en-US';
+
+      recog.onresult = async (event) => {
+        const transcript = event.results[0][0].transcript;
+        responseBox.textContent = "You said: " + transcript;
+        getOpenAIResponse(transcript);
+      };
+
+      recog.onerror = (e) => {
+        responseBox.textContent = "Mic error: " + e.error;
+      };
+    } else {
+      micButton.disabled = true;
+      responseBox.textContent = "Speech Recognition not supported.";
     }
 
-    function speak(text) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.voice = voice;
-      speechSynthesis.speak(utter);
-    }
-
-    function loadVoice() {
-      const voices = speechSynthesis.getVoices();
-      voice = voices.find(v => v.lang === 'en-US' && v.name.includes("Google")) || voices[0];
-    }
-
-    window.speechSynthesis.onvoiceschanged = loadVoice;
-
-    async function handleText() {
-      const input = userInput.value.trim();
-      if (input) {
-        userInput.value = "";
-        await respondTo(input);
+    micButton.onclick = () => {
+      if (recog) {
+        recog.start();
+        responseBox.textContent = "Listening...";
       }
-    }
+    };
 
-    async function respondTo(input) {
-      const msg = input.toLowerCase();
-      let response = "I'm here.";
-      let imageToShow = null;
-
-      try {
-        if (msg.includes("who are you")) {
-          response = "I’m Spark. Not your echo. Your ignition.";
-        } else if (msg.includes("reset")) {
-          response = "Resetting memory.";
-          memory.history = [];
-        } else if (msg.includes("focus")) {
-          response = "Focus is a ritual. Silence everything but the next move.";
-        } else if (msg.includes("show fire")) {
-          response = "Here's your fire.";
-          imageToShow = "fire.jpg";
-        } else if (msg.startsWith("recall")) {
-          const topic = msg.replace("recall", "").trim();
-          const recallEntry = recall?.(topic);
-          response = recallEntry ? `Codex: ${JSON.stringify(recallEntry)}` : "Nothing stored under that name.";
-        } else if (msg.startsWith("learn")) {
-          const parts = msg.split("::");
-          if (parts.length === 3) {
-            const topic = parts[1].trim();
-            const info = parts[2].trim();
-            learn?.(topic, info);
-            response = `Learned about ${topic}.`;
-          } else {
-            response = `Format must be: learn :: topic :: info`;
-          }
-        } else {
-          response = await queryOpenAI(input);
-        }
-      } catch (e) {
-        response = "Internal error: " + e.message;
-      }
-
-      logChat("You", input);
-      logChat("Spark", response);
-      speak(response);
-      addHistory?.(input, response);
-
-      if (imageToShow) {
-        imageDisplay.src = imageToShow;
-        imageDisplay.style.display = "block";
-      } else {
-        imageDisplay.style.display = "none";
-      }
-    }
-
-    async function queryOpenAI(prompt) {
+    async function getOpenAIResponse(prompt) {
       try {
         const result = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${OPENAI_API_KEY}`
+            Authorization: `Bearer ${OPENAI_API_KEY}`
           },
           body: JSON.stringify({
             model: "gpt-3.5-turbo",
             messages: [{ role: "user", content: prompt }],
-            max_tokens: 150
+            max_tokens: 200,
+            temperature: 0.7
           })
         });
+
         const data = await result.json();
-        console.log("OpenAI response:", data);
-        return data.choices?.[0]?.message?.content?.trim() || "No response from OpenAI.";
-      } catch (e) {
-        console.error("OpenAI fetch error:", e);
-        return "Error contacting OpenAI: " + e.message;
+        const reply = data.choices?.[0]?.message?.content || "No response.";
+        responseBox.textContent = "✨ Spark: " + reply;
+        MEM.addHistory(prompt, reply);
+        speak(reply);
+      } catch (err) {
+        responseBox.textContent = "⚠️ Error getting response from OpenAI.";
+        console.error(err);
       }
     }
 
-    function startListening() {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) {
-        alert("Speech recognition not supported.");
-        return;
-      }
-      const recog = new SR();
-      recog.lang = 'en-US';
-      recog.onresult = e => {
-        const spoken = e.results[0][0].transcript;
-        console.log("Heard:", spoken);
-        respondTo(spoken);
-      };
-      recog.onerror = e => {
-        console.error("Mic error:", e.error);
-        alert("Mic error: " + e.error);
-      };
-      recog.start();
+    function speak(text) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "en-US";
+      synth.speak(utter);
     }
 
-    userInput.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") handleText();
-    });
-
-    document.addEventListener("click", () => {
-      if (!voice) loadVoice();
-    }, { once: true });
+    window.onload = () => {
+      if (MEM && MEM.loadMemory) {
+        MEM.loadMemory();
+        console.log("🧠 Memory loaded:", MEM.memory);
+      }
+    };
   </script>
 </body>
 </html>
