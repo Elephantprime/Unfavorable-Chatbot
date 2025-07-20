@@ -61,10 +61,8 @@
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ message: input })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input })
         });
         const data = await res.json();
         const response = data.reply || "No response.";
@@ -99,7 +97,6 @@
     }
   </script>
 
-  <!-- Attach memory system -->
   <script src="memery.js"></script>
 </body>
 </html>
