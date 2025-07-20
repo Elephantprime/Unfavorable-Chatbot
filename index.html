@@ -41,6 +41,7 @@
       border-radius: 10px;
       width: 90%;
       max-width: 600px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -54,69 +55,43 @@
   <div class="output" id="responseArea">Response will appear here.</div>
 
   <script>
-    const API_KEY = "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";
+    const API_KEY = "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";
 
     async function sendMessage() {
-      const input = document.getElementById("userInput").value.trim();
-      if (!input) return;
+      const input = document.getElementById("userInput").value;
+      if (!input.trim()) return;
       document.getElementById("responseArea").textContent = "Thinking...";
-
       try {
-        const payload = {
-          model: "gpt-3.5-turbo",
-          messages: [
-            { role: "system", content: "You are Invoke, a voice-powered AI assistant connected to memory." },
-            { role: "user", content: input }
-          ]
-        };
-
         const res = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${API_KEY}`
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [
+              { role: "system", content: "You are Invoke, a voice-powered AI assistant connected to memory." },
+              { role: "user", content: input }
+            ]
+          })
         });
-
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("OpenAI Error Response:", errorText);
-          document.getElementById("responseArea").textContent = "OpenAI error: " + res.status + " – " + errorText;
-          return;
-        }
-
         const data = await res.json();
-        console.log("OpenAI Full Response:", data);
-
         const response = data.choices?.[0]?.message?.content || "No response.";
         document.getElementById("responseArea").textContent = response;
         speakText(response);
-
-        if (window.MEM?.addHistory) {
-          console.log("Saving to memory:", input, response);
-          MEM.addHistory(input, response);
-        }
-
+        if (window.MEM?.addHistory) MEM.addHistory(input, response);
       } catch (e) {
-        console.error("Fetch Error:", e);
-        document.getElementById("responseArea").textContent = "Fetch error: " + e.message;
+        document.getElementById("responseArea").textContent = "Error: " + e.message;
       }
     }
 
     function speakText(text) {
-      try {
-        const synth = window.speechSynthesis;
-        if (!synth) {
-          console.warn("Speech synthesis not supported.");
-          return;
-        }
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = "en-US";
-        synth.speak(utter);
-      } catch (e) {
-        console.error("Speak Error:", e);
-      }
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "en-US";
+      synth.speak(utter);
     }
 
     function startVoice() {
@@ -124,20 +99,16 @@
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = "en-US";
         recognition.start();
-
         recognition.onresult = function(event) {
           const transcript = event.results[0][0].transcript;
           document.getElementById("userInput").value = transcript;
           sendMessage();
         };
-
         recognition.onerror = function(event) {
-          console.error("Speech error:", event.error);
           alert("Voice error: " + event.error);
         };
-      } catch (e) {
-        alert("Mic not supported in this browser.");
-        console.error("Mic Error:", e);
+      } catch (err) {
+        alert("Speech recognition not supported on this device.");
       }
     }
   </script>
