@@ -10,7 +10,7 @@
     input[type="text"] { flex: 1; padding: 10px; font-size: 16px; background: #333; color: white; border: 1px solid #444; }
     button { padding: 10px 20px; font-size: 16px; background: #444; color: white; border: none; cursor: pointer; }
     button:hover { background: #666; }
-    img { display: none; margin-top: 10px; max-width: 100%; border: 1px solid #555; }
+    img { margin-top: 10px; max-width: 100%; border: 1px solid #555; display: none; }
   </style>
 </head>
 <body>
@@ -21,16 +21,23 @@
     <button onclick="handleText()">Send</button>
     <button onclick="startListening()">🎤 Talk</button>
   </div>
-  <img id="imageDisplay" alt="AI Image Output">
+  <img id="imageDisplay" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="AI Image Output">
 
   <script type="module">
-    import {
-      loadMemory,
-      addHistory,
-      learn,
-      recall,
-      memory
-    } from './memery.js';
+    let memory = { history: [] };
+
+    // Try importing memory functions
+    try {
+      const mem = await import('./memery.js');
+      memory = mem.memory;
+      window.loadMemory = mem.loadMemory;
+      window.addHistory = mem.addHistory;
+      window.learn = mem.learn;
+      window.recall = mem.recall;
+      loadMemory?.();
+    } catch (e) {
+      console.warn("Memory module not loaded. Running in stateless mode.", e);
+    }
 
     const chatlog = document.getElementById('chatlog');
     const userInput = document.getElementById('userInput');
@@ -38,8 +45,6 @@
     let voice = null;
 
     const OPENAI_API_KEY = "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";
-
-    loadMemory();
 
     function logChat(sender, message) {
       const bubble = document.createElement('div');
@@ -74,38 +79,42 @@
       let response = "I'm here.";
       let imageToShow = null;
 
-      if (msg.includes("who are you")) {
-        response = "I’m Spark. Not your echo. Your ignition.";
-      } else if (msg.includes("reset")) {
-        response = "Resetting memory.";
-        memory.history = [];
-      } else if (msg.includes("focus")) {
-        response = "Focus is a ritual. Silence everything but the next move.";
-      } else if (msg.includes("show fire")) {
-        response = "Here's your fire.";
-        imageToShow = "fire.jpg";
-      } else if (msg.startsWith("recall")) {
-        const topic = msg.replace("recall", "").trim();
-        const recallEntry = recall(topic);
-        response = recallEntry ? `Codex: ${JSON.stringify(recallEntry)}` : "Nothing stored under that name.";
-      } else if (msg.startsWith("learn")) {
-        const parts = msg.split("::");
-        if (parts.length === 3) {
-          const topic = parts[1].trim();
-          const info = parts[2].trim();
-          learn(topic, info);
-          response = `Learned about ${topic}.`;
+      try {
+        if (msg.includes("who are you")) {
+          response = "I’m Spark. Not your echo. Your ignition.";
+        } else if (msg.includes("reset")) {
+          response = "Resetting memory.";
+          memory.history = [];
+        } else if (msg.includes("focus")) {
+          response = "Focus is a ritual. Silence everything but the next move.";
+        } else if (msg.includes("show fire")) {
+          response = "Here's your fire.";
+          imageToShow = "fire.jpg";
+        } else if (msg.startsWith("recall")) {
+          const topic = msg.replace("recall", "").trim();
+          const recallEntry = recall?.(topic);
+          response = recallEntry ? `Codex: ${JSON.stringify(recallEntry)}` : "Nothing stored under that name.";
+        } else if (msg.startsWith("learn")) {
+          const parts = msg.split("::");
+          if (parts.length === 3) {
+            const topic = parts[1].trim();
+            const info = parts[2].trim();
+            learn?.(topic, info);
+            response = `Learned about ${topic}.`;
+          } else {
+            response = `Format must be: learn :: topic :: info`;
+          }
         } else {
-          response = `Format must be: learn :: topic :: info`;
+          response = await queryOpenAI(input);
         }
-      } else {
-        response = await queryOpenAI(input);
+      } catch (e) {
+        response = "Internal error: " + e.message;
       }
 
       logChat("You", input);
       logChat("Spark", response);
       speak(response);
-      addHistory(input, response);
+      addHistory?.(input, response);
 
       if (imageToShow) {
         imageDisplay.src = imageToShow;
@@ -130,8 +139,10 @@
           })
         });
         const data = await result.json();
+        console.log("OpenAI response:", data);
         return data.choices?.[0]?.message?.content?.trim() || "No response from OpenAI.";
       } catch (e) {
+        console.error("OpenAI fetch error:", e);
         return "Error contacting OpenAI: " + e.message;
       }
     }
@@ -146,9 +157,13 @@
       recog.lang = 'en-US';
       recog.onresult = e => {
         const spoken = e.results[0][0].transcript;
+        console.log("Heard:", spoken);
         respondTo(spoken);
       };
-      recog.onerror = e => alert("Mic error: " + e.error);
+      recog.onerror = e => {
+        console.error("Mic error:", e.error);
+        alert("Mic error: " + e.error);
+      };
       recog.start();
     }
 
