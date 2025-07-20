@@ -3,54 +3,97 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Invoke Test</title>
+  <title>Invoke Assistant</title>
   <style>
-    body { background: black; color: white; font-family: sans-serif; padding: 20px; }
-    textarea, button { width: 100%; margin: 10px 0; font-size: 1.2em; padding: 10px; border-radius: 8px; }
-    textarea { height: 100px; background: #222; color: white; }
-    button { background: #444; color: white; }
-    #response { margin-top: 20px; background: #111; padding: 15px; border-radius: 10px; }
+    body {
+      font-family: sans-serif;
+      background-color: #0c0c0c;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    textarea, button {
+      font-size: 1.2rem;
+      margin: 1rem 0;
+      width: 90%;
+      max-width: 600px;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 10px;
+    }
+    textarea {
+      background-color: #1e1e1e;
+      color: white;
+      height: 100px;
+      resize: vertical;
+    }
+    button {
+      background-color: #333;
+      color: white;
+      cursor: pointer;
+    }
+    .output {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #1e1e1e;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+    }
   </style>
 </head>
 <body>
-
-  <h2>🔥 Invoke Debug</h2>
-  <textarea id="input" placeholder="Ask something..."></textarea>
-  <button onclick="send()">Send</button>
-  <div id="response">Response will appear here.</div>
+  <h1>🔥 Invoke Assistant</h1>
+  <textarea id="userInput" placeholder="Type something or use the mic..."></textarea>
+  <div>
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="startVoice()">🎤 Speak</button>
+  </div>
+  <div class="output" id="responseArea">Response will appear here.</div>
 
   <script>
-    async function send() {
-      const input = document.getElementById('input').value;
-      const apiKey = "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";
-
-      document.getElementById("response").textContent = "Waiting for OpenAI...";
-
+    async function sendMessage() {
+      const input = document.getElementById("userInput").value;
+      if (!input.trim()) return;
+      document.getElementById("responseArea").textContent = "Thinking...";
       try {
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        const res = await fetch("/api/chat", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: "gpt-3.5-turbo",
-            messages: [
-              { role: "system", content: "You are a helpful assistant." },
-              { role: "user", content: input }
-            ]
-          })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input })
         });
-
         const data = await res.json();
-        const reply = data.choices?.[0]?.message?.content || "⚠️ No reply received.";
-        document.getElementById("response").textContent = reply;
-
-      } catch (err) {
-        document.getElementById("response").textContent = "❌ ERROR: " + err.message;
+        const response = data.reply || "No response.";
+        document.getElementById("responseArea").textContent = response;
+        speakText(response);
+      } catch (e) {
+        document.getElementById("responseArea").textContent = "Error: " + e.message;
       }
     }
-  </script>
 
+    function speakText(text) {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "en-US";
+      synth.speak(utter);
+    }
+
+    function startVoice() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = "en-US";
+      recognition.start();
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("userInput").value = transcript;
+        sendMessage();
+      };
+      recognition.onerror = function(event) {
+        alert("Voice error: " + event.error);
+      };
+    }
+  </script>
 </body>
 </html>
