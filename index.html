@@ -16,14 +16,12 @@
 <body>
   <h1>Spark</h1>
   <div id="chatlog"></div>
-
   <div id="controls">
     <input type="text" id="userInput" placeholder="Say or type something...">
     <button onclick="handleText()">Send</button>
     <button onclick="startListening()">🎤 Talk</button>
   </div>
-
-  <img id="imageDisplay" src="" alt="">
+  <img id="imageDisplay" alt="AI Image Output">
 
   <script type="module">
     import {
@@ -119,20 +117,20 @@
 
     async function queryOpenAI(prompt) {
       try {
-        const result = await fetch("https://api.openai.com/v1/completions", {
+        const result = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${OPENAI_API_KEY}`
           },
           body: JSON.stringify({
-            model: "text-davinci-003",
-            prompt: prompt,
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: prompt }],
             max_tokens: 150
           })
         });
         const data = await result.json();
-        return data.choices?.[0]?.text?.trim() || "No response from OpenAI.";
+        return data.choices?.[0]?.message?.content?.trim() || "No response from OpenAI.";
       } catch (e) {
         return "Error contacting OpenAI: " + e.message;
       }
