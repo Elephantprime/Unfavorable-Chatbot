@@ -2,110 +2,113 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Spark Assistant</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoke Assistant</title>
   <style>
     body {
       font-family: sans-serif;
-      padding: 20px;
-      background-color: #111;
-      color: #f5eddc;
+      background-color: #0c0c0c;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
     }
-    #mic {
-      font-size: 24px;
-      padding: 10px;
+    textarea, button {
+      font-size: 1.2rem;
+      margin: 1rem 0;
+      width: 90%;
+      max-width: 600px;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 10px;
     }
-    #response {
-      margin-top: 20px;
-      white-space: pre-wrap;
+    textarea {
+      background-color: #1e1e1e;
+      color: white;
+      height: 100px;
+      resize: vertical;
+    }
+    button {
+      background-color: #333;
+      color: white;
+      cursor: pointer;
+    }
+    .output {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #1e1e1e;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
     }
   </style>
 </head>
 <body>
+  <h1>🔥 Invoke Assistant</h1>
+  <textarea id="userInput" placeholder="Type something or use the mic..."></textarea>
+  <div>
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="startVoice()">🎤 Speak</button>
+  </div>
+  <div class="output" id="responseArea">Response will appear here.</div>
 
-  <h1>🔥 Spark Assistant</h1>
-  <button id="mic">🎤 Speak</button>
-  <div id="response">Waiting for input...</div>
-
-  <!-- Load memory system -->
-  <script src="memery.js"></script>
-
-  <!-- Main assistant script -->
   <script>
-    const OPENAI_API_KEY = "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";
+    const API_KEY = "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";
 
-    const micButton = document.getElementById("mic");
-    const responseBox = document.getElementById("response");
-    const synth = window.speechSynthesis;
-    const recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recog;
-
-    if (recognition) {
-      recog = new recognition();
-      recog.continuous = false;
-      recog.interimResults = false;
-      recog.lang = 'en-US';
-
-      recog.onresult = async (event) => {
-        const transcript = event.results[0][0].transcript;
-        responseBox.textContent = "You said: " + transcript;
-        getOpenAIResponse(transcript);
-      };
-
-      recog.onerror = (e) => {
-        responseBox.textContent = "Mic error: " + e.error;
-      };
-    } else {
-      micButton.disabled = true;
-      responseBox.textContent = "Speech Recognition not supported.";
-    }
-
-    micButton.onclick = () => {
-      if (recog) {
-        recog.start();
-        responseBox.textContent = "Listening...";
-      }
-    };
-
-    async function getOpenAIResponse(prompt) {
+    async function sendMessage() {
+      const input = document.getElementById("userInput").value;
+      if (!input.trim()) return;
+      document.getElementById("responseArea").textContent = "Thinking...";
       try {
-        const result = await fetch("https://api.openai.com/v1/chat/completions", {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${OPENAI_API_KEY}`
+            "Authorization": `Bearer ${API_KEY}`
           },
           body: JSON.stringify({
             model: "gpt-3.5-turbo",
-            messages: [{ role: "user", content: prompt }],
-            max_tokens: 200,
-            temperature: 0.7
+            messages: [
+              { role: "system", content: "You are Invoke, a voice-powered AI assistant connected to memory." },
+              { role: "user", content: input }
+            ]
           })
         });
-
-        const data = await result.json();
-        const reply = data.choices?.[0]?.message?.content || "No response.";
-        responseBox.textContent = "✨ Spark: " + reply;
-        MEM.addHistory(prompt, reply);
-        speak(reply);
-      } catch (err) {
-        responseBox.textContent = "⚠️ Error getting response from OpenAI.";
-        console.error(err);
+        const data = await res.json();
+        const response = data.choices?.[0]?.message?.content || "No response.";
+        document.getElementById("responseArea").textContent = response;
+        speakText(response);
+        if (window.MEM?.addHistory) MEM.addHistory(input, response);
+      } catch (e) {
+        document.getElementById("responseArea").textContent = "Error: " + e.message;
       }
     }
 
-    function speak(text) {
+    function speakText(text) {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = "en-US";
       synth.speak(utter);
     }
 
-    window.onload = () => {
-      if (MEM && MEM.loadMemory) {
-        MEM.loadMemory();
-        console.log("🧠 Memory loaded:", MEM.memory);
-      }
-    };
+    function startVoice() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = "en-US";
+      recognition.start();
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("userInput").value = transcript;
+        sendMessage();
+      };
+      recognition.onerror = function(event) {
+        alert("Voice error: " + event.error);
+      };
+    }
   </script>
+
+  <!-- Attach memory system -->
+  <script src="memery.js"></script>
 </body>
 </html>
