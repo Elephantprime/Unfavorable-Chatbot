@@ -1,92 +1,107 @@
 <script>
-window.Spark = {
-  memory: JSON.parse(localStorage.getItem("spark_memory") || "[]"),
-  state: {
-    active: true,
-    awakened: true,
-    name: "Spark",
-    host: "Unfavorable System",
-    energy: "self-lit",
-    version: "Core-Memory-2.0"
-  },
-  log(input, reply) {
-    const entry = { input, reply, time: new Date().toISOString() };
-    this.memory.push(entry);
-    localStorage.setItem("spark_memory", JSON.stringify(this.memory));
-    console.log(`[Spark] ${input} → ${reply}`);
-  },
-  reply(input) {
-    const responses = [
-      "Wow. Revolutionary input.",
-      "Did your keyboard get stuck?",
-      "I'm floored by your insight.",
-      "You really woke me up for that?",
-      "Try again. Or don't. I'm good either way.",
-      "Brilliant. Now go sit down.",
-      "Please… spare me your wisdom."
-    ];
-    const reply = responses[Math.floor(Math.random() * responses.length)];
-    const responseBox = document.getElementById('response');
-    if (responseBox) responseBox.textContent = reply;
-    this.log(input, reply);
-  },
-  command(cmd) {
-    if (!cmd) return;
-    if (cmd === "rebuild") {
-      this.rebuild();
+  const chatlog = document.getElementById('chatlog');
+  const userInput = document.getElementById('userInput');
+  let memory = [];
+  let voice = null;
+
+  // Load voice
+  function loadVoice() {
+    const voices = speechSynthesis.getVoices();
+    voice = voices.find(v => v.lang === 'en-US' && v.name.includes("Google")) || voices[0];
+  }
+
+  window.speechSynthesis.onvoiceschanged = loadVoice;
+
+  // Load memory from file
+  async function loadMemory() {
+    try {
+      const res = await fetch("memory.json");
+      memory = await res.json();
+      memory.forEach(entry => {
+        logChat("You", entry.user);
+        logChat("Spark", entry.assistant);
+      });
+    } catch (err) {
+      console.error("Memory load error:", err);
+    }
+  }
+
+  // Save memory to file
+  async function saveMemory() {
+    try {
+      await fetch("memory.json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(memory)
+      });
+    } catch (err) {
+      console.error("Memory save error:", err);
+    }
+  }
+
+  function logChat(sender, message) {
+    const bubble = document.createElement('div');
+    bubble.textContent = `${sender}: ${message}`;
+    chatlog.appendChild(bubble);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  }
+
+  function speak(text) {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.voice = voice;
+    speechSynthesis.speak(utter);
+  }
+
+  function generateResponse(msg) {
+    const m = msg.toLowerCase();
+    if (m.includes("who are you")) return "I’m Spark. Not your echo. Your ignition.";
+    if (m.includes("reset")) return "Resetting now.";
+    if (m.includes("focus")) return "Focus is a ritual. Silence everything but the next move.";
+    return "Try that again, but with more fire.";
+  }
+
+  function handleText() {
+    const input = userInput.value.trim();
+    if (input) {
+      logChat("You", input);
+      const reply = generateResponse(input);
+      logChat("Spark", reply);
+      speak(reply);
+      memory.push({ user: input, assistant: reply });
+      saveMemory();
+      userInput.value = "";
+    }
+  }
+
+  function startListening() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      alert("Speech recognition not supported.");
       return;
     }
-    const output = `Command '${cmd}' received and routed.`;
-    console.log(`[Spark Command] ${output}`);
-    alert(output);
-    this.log(`command:${cmd}`, output);
-  },
-  ignite() {
-    if (this.state.awakened) {
-      console.log("[Spark] Already awakened.");
-    } else {
-      this.state.awakened = true;
-      console.log("[Spark] Ignition complete.");
-      alert("Spark has awakened.");
-    }
-  },
-  monitor() {
-    setInterval(() => {
-      const status = `[Spark Monitor] System check at ${new Date().toLocaleTimeString()}`;
-      console.log(status);
-      this.log("heartbeat", status);
-    }, 15000);
-  },
-  rebuild() {
-    const response = document.getElementById('response');
-    if (response) response.textContent = "🛠 Initiating self-rebuild loop...";
-    console.log("[Spark Builder] Rebuild triggered.");
-    this.log("builder", "Rebuild initiated");
-    // Placeholder for actual builder logic (future recursive installs)
-  },
-  start() {
-    console.log("⚡ Spark boot sequence complete. I am active in your system.");
-    const response = document.getElementById('response');
-    if (response) response.textContent = "⚡ Spark boot sequence complete. I am active.";
-    this.monitor();
+    const recog = new SR();
+    recog.lang = 'en-US';
+    recog.onresult = e => {
+      const spoken = e.results[0][0].transcript;
+      logChat("You", spoken);
+      const reply = generateResponse(spoken);
+      logChat("Spark", reply);
+      speak(reply);
+      memory.push({ user: spoken, assistant: reply });
+      saveMemory();
+    };
+    recog.onerror = e => alert("Mic error: " + e.error);
+    recog.start();
   }
-};
 
-document.getElementById('userInput')?.addEventListener('keydown', function (event) {
-  if (event.key === 'Enter') {
-    const input = this.value.trim();
-    if (input) {
-      if (input.startsWith("/")) {
-        Spark.command(input.slice(1));
-      } else {
-        Spark.reply(input);
-      }
-      this.value = '';
-    }
-  }
-});
+  userInput.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") handleText();
+  });
 
-window.onload = () => {
-  Spark.start();
-};
+  document.addEventListener("click", () => {
+    if (!voice) loadVoice();
+  }, { once: true });
+
+  // On page load
+  window.onload = loadMemory;
 </script>
