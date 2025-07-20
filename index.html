@@ -6,54 +6,63 @@
   <title>🔥 Invoke Assistant</title>
   <style>
     body {
-      background-color: #111;
-      color: white;
-      font-family: Arial, sans-serif;
-      padding: 20px;
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
       text-align: center;
+      padding: 2em;
+    }
+    h1 {
+      font-size: 1.8em;
     }
     textarea {
-      width: 90%;
+      width: 100%;
+      max-width: 500px;
       height: 100px;
-      background-color: #222;
-      color: white;
+      font-size: 1em;
+      padding: 1em;
+      background: #111;
+      color: #fff;
       border: none;
-      padding: 10px;
-      font-size: 16px;
+      border-radius: 8px;
     }
     button {
       margin: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #333;
-      color: white;
+      padding: 1em 2em;
+      font-size: 1em;
+      background: #333;
+      color: #fff;
       border: none;
-      cursor: pointer;
+      border-radius: 8px;
     }
     #response {
-      margin-top: 20px;
-      background-color: #222;
-      padding: 15px;
+      margin-top: 2em;
+      background: #111;
+      padding: 1em;
       border-radius: 8px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
     }
   </style>
 </head>
 <body>
   <h1>🔥 Invoke Assistant</h1>
-  <textarea id="userInput" placeholder="Say something..."></textarea><br/>
-  <button onclick="sendMessage()">Send</button>
-  <button onclick="startListening()">🎤 Speak</button>
-  <div id="response">Awaiting input...</div>
+  <textarea id="userInput" placeholder="Speak or type your message..."></textarea><br/>
+  <button onclick="sendToGPT()">Send</button>
+  <button onclick="startRecognition()">🎤 Speak</button>
+  <div id="response"></div>
 
   <script>
-    const apiKey = "sk-YOUR-ACTUAL-KEY-HERE"; // <- your real API key
+    const apiKey = "sk-..."; // Your real OpenAI key goes here
 
-    async function sendMessage() {
+    async function sendToGPT() {
       const input = document.getElementById("userInput").value;
-      document.getElementById("response").textContent = "Thinking...";
+      const resBox = document.getElementById("response");
+      resBox.innerText = "Thinking...";
 
       try {
-        const result = await fetch("https://api.openai.com/v1/chat/completions", {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -65,29 +74,41 @@
           })
         });
 
-        const data = await result.json();
-        const message = data.choices?.[0]?.message?.content || "No response.";
-        document.getElementById("response").textContent = message;
-        speakText(message);
+        const data = await response.json();
+
+        if (data.choices && data.choices.length > 0) {
+          const output = data.choices[0].message.content;
+          resBox.innerText = output;
+          speak(output);
+        } else {
+          resBox.innerText = "⚠️ No reply received.";
+        }
       } catch (error) {
-        document.getElementById("response").textContent = "Error: " + error.message;
+        resBox.innerText = "⚠️ Error: " + error.message;
       }
     }
 
-    function speakText(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      speechSynthesis.speak(utterance);
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        speechSynthesis.speak(utterance);
+      }
     }
 
-    function startListening() {
+    function startRecognition() {
       const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
       recognition.lang = "en-US";
-      recognition.start();
-      recognition.onresult = function(event) {
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.onresult = event => {
         const transcript = event.results[0][0].transcript;
         document.getElementById("userInput").value = transcript;
-        sendMessage();
+        sendToGPT();
       };
+      recognition.onerror = event => {
+        document.getElementById("response").innerText = "⚠️ Mic error: " + event.error;
+      };
+      recognition.start();
     }
   </script>
 </body>
