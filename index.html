@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Invoke Assistant</title>
+  <title>Invoke Assistant (Mock Mode)</title>
   <style>
     body {
       font-family: sans-serif;
@@ -45,7 +45,7 @@
   </style>
 </head>
 <body>
-  <h1>🔥 Invoke Assistant</h1>
+  <h1>🔥 Invoke Assistant (Mock Mode)</h1>
   <textarea id="userInput" placeholder="Type something or use the mic..."></textarea>
   <div>
     <button onclick="sendMessage()">Send</button>
@@ -54,35 +54,24 @@
   <div class="output" id="responseArea">Response will appear here.</div>
 
   <script>
-    const API_KEY = "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";
-
     async function sendMessage() {
-      const input = document.getElementById("userInput").value;
-      if (!input.trim()) return;
+      const input = document.getElementById("userInput").value.trim();
+      if (!input) return;
       document.getElementById("responseArea").textContent = "Thinking...";
-      try {
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${API_KEY}`
-          },
-          body: JSON.stringify({
-            model: "gpt-3.5-turbo",
-            messages: [
-              { role: "system", content: "You are Invoke, a mobile voice assistant with persistent memory." },
-              { role: "user", content: input }
-            ]
-          })
-        });
-        const data = await res.json();
-        const response = data.choices?.[0]?.message?.content || "No response.";
-        document.getElementById("responseArea").textContent = response;
-        speakText(response);
-        if (window.MEM?.addHistory) MEM.addHistory(input, response);
-      } catch (e) {
-        document.getElementById("responseArea").textContent = "Error: " + e.message;
-      }
+      
+      // MOCKED RESPONSE
+      setTimeout(() => {
+        const fakeReplies = [
+          "I'm here. What's on your mind?",
+          "Say more about that.",
+          "Interesting. Go deeper.",
+          "That sounds important. Why now?",
+          "I'm listening... always."
+        ];
+        const reply = fakeReplies[Math.floor(Math.random() * fakeReplies.length)];
+        document.getElementById("responseArea").textContent = reply;
+        speakText(reply);
+      }, 1000);
     }
 
     function speakText(text) {
@@ -107,7 +96,5 @@
       };
     }
   </script>
-
-  <script src="memery.js"></script>
 </body>
 </html>
