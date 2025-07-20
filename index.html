@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Spark Assistant</title>
   <style>
     body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
     #chatlog { border: 1px solid #444; padding: 10px; height: 300px; overflow-y: auto; background: #222; margin-bottom: 10px; }
-    #controls { display: flex; flex-direction: column; gap: 10px; }
-    #inputRow { display: flex; gap: 10px; }
+    #controls { display: flex; gap: 10px; }
     input[type="text"] { flex: 1; padding: 10px; font-size: 16px; background: #333; color: white; border: 1px solid #444; }
-    button { padding: 10px; font-size: 16px; background: #444; color: white; border: none; cursor: pointer; }
+    button { padding: 10px 20px; font-size: 16px; background: #444; color: white; border: none; cursor: pointer; }
     button:hover { background: #666; }
   </style>
 </head>
@@ -18,10 +17,8 @@
   <div id="chatlog"></div>
 
   <div id="controls">
-    <div id="inputRow">
-      <input type="text" id="userInput" placeholder="Say or type something...">
-      <button onclick="handleText()">Send</button>
-    </div>
+    <input type="text" id="userInput" placeholder="Say or type something..." />
+    <button onclick="handleText()">Send</button>
     <button onclick="startListening()">🎤 Talk</button>
   </div>
 
@@ -39,19 +36,12 @@
 
     function speak(text) {
       if (!voice) {
-        loadVoice();
+        voice = speechSynthesis.getVoices().find(v => v.lang === 'en-US' && v.name.includes('Google')) || speechSynthesis.getVoices()[0];
       }
       const utter = new SpeechSynthesisUtterance(text);
       utter.voice = voice;
       speechSynthesis.speak(utter);
     }
-
-    function loadVoice() {
-      const voices = speechSynthesis.getVoices();
-      voice = voices.find(v => v.lang === 'en-US' && v.name.includes("Google")) || voices[0];
-    }
-
-    window.speechSynthesis.onvoiceschanged = loadVoice;
 
     function handleText() {
       const input = userInput.value.trim();
@@ -80,6 +70,9 @@
       }
       const recog = new SR();
       recog.lang = 'en-US';
+      recog.interimResults = false;
+      recog.continuous = false;
+
       recog.onresult = e => {
         const spoken = e.results[0][0].transcript;
         logChat("You", spoken);
@@ -87,19 +80,30 @@
         logChat("Spark", reply);
         speak(reply);
       };
+
       recog.onerror = e => alert("Mic error: " + e.error);
       recog.start();
     }
 
-    // Allow pressing "Enter" to send
     userInput.addEventListener("keydown", function(e) {
       if (e.key === "Enter") handleText();
     });
 
-    // Wake up voices
+    // Load voice after user touches screen
     document.addEventListener("click", () => {
-      if (!voice) loadVoice();
+      if (!voice) {
+        const voices = speechSynthesis.getVoices();
+        voice = voices.find(v => v.lang === 'en-US' && v.name.includes("Google")) || voices[0];
+      }
     }, { once: true });
+
+    // Trigger early voice fetch
+    speechSynthesis.onvoiceschanged = () => {
+      if (!voice) {
+        const voices = speechSynthesis.getVoices();
+        voice = voices.find(v => v.lang === 'en-US' && v.name.includes("Google")) || voices[0];
+      }
+    };
   </script>
 </body>
 </html>
