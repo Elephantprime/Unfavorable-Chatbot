@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Spark Assistant</title>
@@ -14,11 +15,17 @@
 </head>
 <body>
   <h1>Spark</h1>
-  <div id="chatlog"></div>  <div id="controls">
+  <div id="chatlog"></div>
+
+  <div id="controls">
     <input type="text" id="userInput" placeholder="Say or type something...">
     <button onclick="handleText()">Send</button>
     <button onclick="startListening()">🎤 Talk</button>
-  </div>  <img id="imageDisplay" src="" alt="">  <script type="module">
+  </div>
+
+  <img id="imageDisplay" src="" alt="">
+
+  <script type="module">
     import {
       loadMemory,
       addHistory,
@@ -32,7 +39,7 @@
     const imageDisplay = document.getElementById('imageDisplay');
     let voice = null;
 
-    const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY_HERE";
+    const OPENAI_API_KEY = "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";
 
     loadMemory();
 
@@ -154,5 +161,6 @@
     document.addEventListener("click", () => {
       if (!voice) loadVoice();
     }, { once: true });
-  </script></body>
+  </script>
+</body>
 </html>
