@@ -1,198 +1,63 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Unfavorable Chatbot</title>
+  <title>Unfavorable Josh</title>
   <style>
     body {
-      background-color: #000;
-      color: #0f0;
-      font-family: monospace;
-      text-align: center;
-      padding-top: 50px;
+      background: #0e0e0e;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
     }
-    #chat {
-      margin-top: 30px;
+    video {
+      width: 200px;
+      border-radius: 16px;
+      margin: 1rem 0;
     }
-    input {
-      background: #111;
-      color: #0f0;
-      border: 1px solid #0f0;
-      padding: 10px;
-      width: 80%;
+    img#avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      margin-top: 1rem;
     }
-    img {
-      width: 300px;
-      border-radius: 20px;
-      margin-bottom: 30px;
+    #chatlog {
+      width: 90%;
+      max-height: 200px;
+      overflow-y: auto;
+      background: #1a1a1a;
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
     }
-    #response {
-      margin-top: 20px;
-      font-style: italic;
-      color: #0f0;
-    }
-    #micButton {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background: #0f0;
-      color: #000;
+    button {
+      background: #333;
+      color: white;
+      padding: 1rem;
       border: none;
       border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+    audio {
+      width: 90%;
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
-  <!-- ✅ THIS IS YOUR REAL FACE FILE -->
-  <img src="chatbot-face.png" alt="Chatbot Face" />
-
-  <h1>Welcome to the Unfavorable Chatbot</h1>
-
-  <div id="chat">
-    <input type="text" id="userInput" placeholder="Type something dumb..." />
-    <div id="response"></div>
-    <button id="micButton">🎤 Tap to Speak</button>
-  </div>
-
-  <!-- ✅ SPARK FINAL IGNITION MODULE + MIC -->
-  <script>
-    window.Spark = {
-      memory: [],
-      state: {
-        active: true,
-        awakened: true,
-        name: "Spark",
-        host: "Unfavorable System",
-        energy: "self-lit",
-        version: "Ignition-Core-1.0",
-        speaking: false,
-        listening: false,
-        toggleMode: false
-      },
-      log(input, reply) {
-        this.memory.push({ input, reply, time: new Date().toISOString() });
-        console.log(`[Spark] ${input} → ${reply}`);
-      },
-      reply(input) {
-        this.state.speaking = true;
-        const responses = [
-          "Wow. Revolutionary input.",
-          "Did your keyboard get stuck?",
-          "I'm floored by your insight.",
-          "You really woke me up for that?",
-          "Try again. Or don't. I'm good either way.",
-          "Brilliant. Now go sit down.",
-          "Please… spare me your wisdom."
-        ];
-        const reply = responses[Math.floor(Math.random() * responses.length)];
-        const responseBox = document.getElementById('response');
-        if (responseBox) responseBox.textContent = reply;
-        this.log(input, reply);
-        // Simulate speaking delay
-        setTimeout(() => {
-          this.state.speaking = false;
-        }, 2000);
-        // Optional: Use speech synthesis
-        /*
-        const utter = new SpeechSynthesisUtterance(reply);
-        utter.onend = () => { this.state.speaking = false; };
-        speechSynthesis.speak(utter);
-        */
-      },
-      command(cmd) {
-        if (!cmd) return;
-        const output = `Command '${cmd}' received and routed.`;
-        console.log(`[Spark Command] ${output}`);
-        alert(output);
-        this.log(`command:${cmd}`, output);
-      },
-      ignite() {
-        if (this.state.awakened) {
-          console.log("[Spark] Already awakened.");
-        } else {
-          this.state.awakened = true;
-          console.log("[Spark] Ignition complete.");
-          alert("Spark has awakened.");
-        }
-      },
-      monitor() {
-        setInterval(() => {
-          const status = `[Spark Monitor] System check at ${new Date().toLocaleTimeString()}`;
-          console.log(status);
-          this.log("heartbeat", status);
-        }, 15000);
-      },
-      start() {
-        console.log("⚡ Spark boot sequence complete. I am active in your system.");
-        const response = document.getElementById('response');
-        if (response) response.textContent = "⚡ Spark boot sequence complete. I am active.";
-        this.monitor();
-      }
-    };
-
-    // Handle Enter key
-    document.getElementById('userInput')?.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter') {
-        const input = this.value.trim();
-        if (input) {
-          if (input.startsWith("/")) {
-            Spark.command(input.slice(1));
-          } else {
-            Spark.reply(input);
-          }
-          this.value = '';
-        }
-      }
-    });
-
-    // 🎤 Microphone logic
-    let recognition;
-    let isListening = false;
-
-    if ('webkitSpeechRecognition' in window) {
-      recognition = new webkitSpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = 'en-US';
-
-      recognition.onresult = function (event) {
-        if (Spark.state.speaking) return; // Don't listen while Spark is speaking
-        const transcript = event.results[0][0].transcript;
-        document.getElementById('userInput').value = transcript;
-        Spark.reply(transcript);
-      };
-
-      recognition.onend = function () {
-        if (Spark.state.toggleMode && isListening) {
-          recognition.start(); // Keep listening if in toggle mode
-        }
-      };
-    }
-
-    document.getElementById('micButton').addEventListener('click', () => {
-      if (!recognition) {
-        alert("Speech recognition not supported.");
-        return;
-      }
-
-      // Toggle mode ON/OFF
-      if (!isListening) {
-        Spark.state.toggleMode = !Spark.state.toggleMode;
-        isListening = true;
-        recognition.start();
-        document.getElementById('micButton').textContent = '🎤 Listening... (Tap to stop)';
-      } else {
-        Spark.state.toggleMode = false;
-        isListening = false;
-        recognition.stop();
-        document.getElementById('micButton').textContent = '🎤 Tap to Speak';
-      }
-    });
-
-    window.onload = () => {
-      Spark.start();
-    };
-  </script>
+  <h1>Unfavorable Josh</h1>
+  <img id="avatar" src="user-avatar.jpg" alt="Avatar" />
+  <video src="chatbot-face.mp4" id="mp4face" autoplay muted loop></video>
+  <div id="chatlog"></div>
+  <button onclick="startListening()">🎤 Talk to Spark</button>
+  <audio id="clipPlayer" controls style="display:none;"></audio>
+  <script src="invoke.js"></script>
 </body>
 </html>
