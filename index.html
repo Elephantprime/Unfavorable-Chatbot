@@ -5,7 +5,9 @@
   <title>Spark Assistant</title>
   <style>
     body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
-    #chatlog { border: 1px solid #444; padding: 10px; height: 300px; overflow-y: auto; margin-bottom: 10px; background: #222; }
+    #chatlog { border: 1px solid #444; padding: 10px; height: 300px; overflow-y: auto; background: #222; margin-bottom: 10px; }
+    #controls { display: flex; gap: 10px; }
+    input[type="text"] { flex: 1; padding: 10px; font-size: 16px; background: #333; color: white; border: 1px solid #444; }
     button { padding: 10px 20px; font-size: 16px; background: #444; color: white; border: none; cursor: pointer; }
     button:hover { background: #666; }
     video, audio { display: none; margin-top: 10px; max-width: 100%; }
@@ -14,17 +16,25 @@
 <body>
   <h1>Spark</h1>
   <div id="chatlog"></div>
-  <button onclick="startListening()">🎤 Talk</button>
+
+  <div id="controls">
+    <input type="text" id="userInput" placeholder="Say or type something...">
+    <button onclick="handleText()">Send</button>
+    <button onclick="startListening()">🎤 Talk</button>
+  </div>
+
   <video id="clipPlayer" controls></video>
 
   <script>
     const chatlog = document.getElementById('chatlog');
     const clipPlayer = document.getElementById('clipPlayer');
+    const userInput = document.getElementById('userInput');
 
     let memory = [];
     let voice = null;
     let voicesLoaded = false;
 
+    // Load voices once
     function loadVoicesWhenReady(callback) {
       let tries = 0;
       const interval = setInterval(() => {
@@ -43,10 +53,9 @@
       }, 200);
     }
 
+    // Trigger voice loading on any user interaction
     document.addEventListener("click", () => {
-      if (!voicesLoaded) {
-        loadVoicesWhenReady();
-      }
+      if (!voicesLoaded) loadVoicesWhenReady();
     }, { once: true });
 
     async function respondTo(input) {
@@ -80,19 +89,21 @@
 
       logChat("You", input);
       logChat("Spark", response);
-      speak(response);
+      waitToSpeak(response);
       memory.push({ user: input, assistant: response });
+    }
+
+    function waitToSpeak(text) {
+      if (!voicesLoaded || !voice) {
+        setTimeout(() => waitToSpeak(text), 300);
+        return;
+      }
+      speak(text);
     }
 
     function speak(text) {
       const utter = new SpeechSynthesisUtterance(text);
-      if (voicesLoaded && voice) {
-        utter.voice = voice;
-      } else {
-        console.warn("Voice not loaded, retrying in 500ms...");
-        setTimeout(() => speak(text), 500);
-        return;
-      }
+      utter.voice = voice;
       speechSynthesis.speak(utter);
     }
 
@@ -116,6 +127,18 @@
       return "Try that again, but with more fire.";
     }
 
+    function handleText() {
+      const input = userInput.value.trim();
+      if (input) {
+        respondTo(input);
+        userInput.value = "";
+      }
+    }
+
+    userInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") handleText();
+    });
+
     function startListening() {
       if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         speak("Speech recognition is not supported in this browser.");
@@ -128,23 +151,13 @@
       recognition.interimResults = false;
       recognition.continuous = false;
 
-      recognition.onstart = () => {
-        console.log("Listening...");
-      };
-
       recognition.onresult = function(event) {
         const transcript = event.results[0][0].transcript;
-        console.log("Heard:", transcript);
         respondTo(transcript);
       };
 
       recognition.onerror = function(event) {
-        console.error("Speech error:", event.error);
         speak("Didn't catch that. Say it again.");
-      };
-
-      recognition.onend = () => {
-        console.log("Recognition ended.");
       };
 
       recognition.start();
