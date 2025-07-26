@@ -7,12 +7,12 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
+  <div id="container">
     <h1>Spark Assistant</h1>
-    <textarea id="input" placeholder="Speak or type something..."></textarea>
-    <div class="buttons">
-      <button id="speak">🎙️ Speak</button>
-      <button id="send">📤 Send</button>
+    <textarea id="input" placeholder="Speak or type here..."></textarea>
+    <div id="button-row">
+      <button onclick="startListening()">🎤 Speak</button>
+      <button onclick="processInput()">➤ Send</button>
     </div>
     <div id="output"></div>
   </div>
