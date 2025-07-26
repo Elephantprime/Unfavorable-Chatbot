@@ -1,102 +1,46 @@
-// === SPARK ASSISTANT: MEMORY CORE ===
-
-let conversationLog = [];
-let apiKey = localStorage.getItem("openai_api_key") || "";
-
-// DOM elements
-const userInput = document.getElementById("userInput");
-const responseBox = document.getElementById("response");
-
-// === Main Send Function ===
-async function send() {
-  const prompt = userInput.value.trim();
-  if (!prompt) return;
-
-  conversationLog.push({ role: "user", content: prompt });
-  updateDisplay("Thinking...");
-
-  const res = await queryGPT(conversationLog);
-  if (res) {
-    conversationLog.push({ role: "assistant", content: res });
-    updateDisplay(res);
-    speak(res);
-  }
+body {
+  background-color: #111;
+  color: #eee;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-// === GPT API Request ===
-async function queryGPT(log) {
-  if (!apiKey) {
-    updateDisplay("⚠️ No API key set. Say: set API key");
-    return null;
-  }
-
-  try {
-    const raw = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: log,
-        temperature: 0.7
-      })
-    });
-
-    const data = await raw.json();
-    return data.choices?.[0]?.message?.content || "[No response]";
-  } catch (err) {
-    updateDisplay("❌ API ERROR");
-    return null;
-  }
+.container {
+  padding: 2em;
+  max-width: 600px;
+  margin: auto;
 }
 
-// === Voice Input ===
-function startListening() {
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US";
-  recognition.start();
-
-  recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    userInput.value = transcript;
-    send();
-  };
-
-  recognition.onerror = (err) => {
-    updateDisplay("🎤 Voice error: " + err.error);
-  };
+textarea {
+  width: 100%;
+  height: 100px;
+  padding: 1em;
+  font-size: 1em;
+  background-color: #222;
+  color: #fff;
+  border: none;
+  resize: none;
+  margin-bottom: 1em;
 }
 
-// === Voice Output ===
-function speak(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 1;
-  utterance.pitch = 1;
-  speechSynthesis.speak(utterance);
+button {
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 0.8em 1.2em;
+  margin-right: 0.5em;
+  cursor: pointer;
+  font-size: 1em;
 }
 
-// === Display Handler ===
-function updateDisplay(msg) {
-  responseBox.innerText = msg;
+button:hover {
+  background-color: #444;
 }
 
-// === Voice Commands ===
-userInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    send();
-  }
-
-  // Voice command: "Set API key"
-  if (userInput.value.toLowerCase().startsWith("set api key")) {
-    const key = userInput.value.split(" ").slice(3).join(" ").trim();
-    if (key.startsWith("sk-")) {
-      localStorage.setItem("openai_api_key", key);
-      apiKey = key;
-      updateDisplay("✅ API key saved.");
-      userInput.value = "";
-    }
-  }
-});
+#output {
+  margin-top: 1em;
+  padding: 1em;
+  background: #1a1a1a;
+  white-space: pre-wrap;
+}
