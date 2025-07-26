@@ -7,80 +7,14 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>Spark Assistant</h1>
-    <textarea id="input" placeholder="Speak or type here..."></textarea>
-    <button onclick="startRecognition()">🎤 Speak</button>
-    <button onclick="sendMessage()">➤ Send</button>
-    <div id="response"></div>
-  </div>
-
+  <h1>Spark Assistant</h1>
+  <textarea id="userInput" placeholder="Ask Spark..." rows="4" cols="50"></textarea><br>
+  <button onclick="speak()">🎤 Speak</button>
+  <button onclick="send()">💬 Send</button>
+  <div id="response"></div>
+  <br>
+  <input type="text" id="apiKeyInput" placeholder="Enter OpenAI API Key"/>
+  <button onclick="setApiKey()">🔑 Set API Key</button>
   <script src="memory.js"></script>
-  <script>
-    const inputField = document.getElementById("input");
-    const responseDiv = document.getElementById("response");
-
-    async function sendMessage() {
-      const input = inputField.value.trim();
-      if (!input) return;
-      const apiKey = getAPIKey();
-      if (!apiKey) return responseDiv.innerText = "No API key set. Type: set api key YOUR_KEY";
-      if (input.toLowerCase().startsWith("set api key")) {
-        const key = input.split(" ").pop().trim();
-        saveAPIKey(key);
-        responseDiv.innerText = "API key saved.";
-        inputField.value = "";
-        return;
-      }
-
-      const ritualMatches = matchRituals(input);
-      const codexResponse = handleCodex(input);
-      if (codexResponse) {
-        speak(codexResponse);
-        responseDiv.innerText = codexResponse;
-        addToMemory(input, codexResponse);
-        return;
-      }
-
-      responseDiv.innerText = "Thinking...";
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4",
-          messages: [{ role: "user", content: input }]
-        })
-      });
-
-      const data = await res.json();
-      const output = data?.choices?.[0]?.message?.content || "No response.";
-      speak(output);
-      responseDiv.innerText = output;
-      addToMemory(input, output);
-      inputField.value = "";
-    }
-
-    function speak(text) {
-      const synth = window.speechSynthesis;
-      const utter = new SpeechSynthesisUtterance(text);
-      synth.speak(utter);
-    }
-
-    const recognition = new(window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = "en-US";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.onresult = function (event) {
-      inputField.value = event.results[0][0].transcript;
-      sendMessage();
-    };
-
-    function startRecognition() {
-      recognition.start();
-    }
-  </script>
 </body>
 </html>
