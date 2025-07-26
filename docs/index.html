@@ -1,44 +1,21 @@
-<link rel="stylesheet" href="style.css">
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Spark Assistant</title>
-  <base href="/Unfavorable-Chatbot/">
-  <style>
-    body {
-      background-color: #111;
-      color: #f0f0f0;
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    #response {
-      margin-top: 20px;
-      white-space: pre-wrap;
-      background: #222;
-      padding: 15px;
-      border-radius: 10px;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-      border-radius: 5px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Spark Assistant</h1>
-
-  <textarea id="userInput" rows="4" cols="50" placeholder="Ask me something..."></textarea><br/>
-  <button onclick="send()">Send</button>
-  <button onclick="startListening()">🎤 Speak</button>
-
-  <div id="response"></div>
-
+  <div class="container">
+    <h1>Spark Assistant</h1>
+    <textarea id="input" placeholder="Speak or type something..."></textarea>
+    <div class="buttons">
+      <button id="speak">🎙️ Speak</button>
+      <button id="send">📤 Send</button>
+    </div>
+    <div id="output"></div>
+  </div>
   <script src="memory.js"></script>
 </body>
 </html>
