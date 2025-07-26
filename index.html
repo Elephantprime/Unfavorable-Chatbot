@@ -1,109 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Invoke Assistant</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #0c0c0c;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
-    }
-    textarea, button {
-      font-size: 1.2rem;
-      margin: 1rem 0;
-      width: 90%;
-      max-width: 600px;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 10px;
-    }
-    textarea {
-      background-color: #1e1e1e;
-      color: white;
-      height: 100px;
-      resize: vertical;
-    }
-    button {
-      background-color: #333;
-      color: white;
-      cursor: pointer;
-    }
-    .output {
-      margin-top: 2rem;
-      padding: 1rem;
-      background: #1e1e1e;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 600px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spark Assistant</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🔥 Invoke Assistant</h1>
-  <textarea id="userInput" placeholder="Type something or use the mic..."></textarea>
-  <div>
-    <button onclick="sendMessage()">Send</button>
-    <button onclick="startVoice()">🎤 Speak</button>
-  </div>
-  <div class="output" id="responseArea">Response will appear here.</div>
+  <div id="assistant-container">
+    <video id="avatar" autoplay loop muted playsinline>
+      <source src="chatbot-face.mp4" type="video/mp4" />
+    </video>
+    <div id="response-box"></div>
+    <textarea id="user-input" placeholder="Talk to Spark..."></textarea>
+    <div id="controls">
+      <button id="speak-btn">🎤</button>
+      <button id="send-btn">Send</button>
+    </div>
+  </div>  <script src="memery.js"></script></body>
+</html>// == FILE 2: style.css ==
 
-  <script>
-    const OPENAI_KEY = "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";
+body { margin: 0; background: #111; color: #f5f5f5; font-family: 'Arial', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
 
-    async function sendMessage() {
-      const input = document.getElementById("userInput").value;
-      if (!input.trim()) return;
-      document.getElementById("responseArea").textContent = "Thinking...";
+#assistant-container { text-align: center; width: 90%; max-width: 400px; }
 
-      try {
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${OPENAI_KEY}`
-          },
-          body: JSON.stringify({
-            model: "gpt-4",
-            messages: [{ role: "user", content: input }]
-          })
-        });
+#avatar { width: 100%; border-radius: 20px; margin-bottom: 15px; }
 
-        const data = await res.json();
-        const response = data.choices?.[0]?.message?.content || "⚠️ reply not received";
-        document.getElementById("responseArea").textContent = response;
-        speakText(response);
-      } catch (e) {
-        document.getElementById("responseArea").textContent = "Error: " + e.message;
-      }
-    }
+#response-box { background: #222; padding: 10px; border-radius: 10px; min-height: 80px; margin-bottom: 10px; overflow-y: auto; }
 
-    function speakText(text) {
-      const synth = window.speechSynthesis;
-      if (!synth) return;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "en-US";
-      synth.speak(utter);
-    }
+#user-input { width: 100%; padding: 10px; border: none; border-radius: 10px; margin-bottom: 10px; }
 
-    function startVoice() {
-      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = "en-US";
-      recognition.start();
-      recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        document.getElementById("userInput").value = transcript;
-        sendMessage();
-      };
-      recognition.onerror = function(event) {
-        alert("Voice error: " + event.error);
-      };
-    }
-  </script>
-</body>
-</html>
+#controls button { padding: 10px 15px; margin: 0 5px; border: none; border-radius: 5px; background: #444; color: #fff; cursor: pointer; }
+
+#controls button:hover { background: #666; }
+
+// == FILE 3: memery.js ==
+
+const OPENAI_KEY = localStorage.getItem('OPENAI_KEY') || ''; const ELEVENLABS_KEY = 'YOUR_ELEVENLABS_API_KEY'; const TELEGRAM_BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'; const TELEGRAM_CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID';
+
+const CORE_MEMORY = { codex: {}, ritual: {}, soul: 'ElianVeritas', whisper: [], learnings: [], };
+
+const speak = (text) => { fetch('https://api.elevenlabs.io/v1/text-to-speech/YOUR_VOICE_ID/stream', { method: 'POST', headers: { 'Content-Type': 'application/json', 'xi-api-key': ELEVENLABS_KEY }, body: JSON.stringify({ text, voice_settings: { stability: 0.3, similarity_boost: 0.9 } }) }) .then(response => response.blob()) .then(blob => { const url = URL.createObjectURL(blob); const audio = new Audio(url); audio.play(); }); };
+
+const speakWithPauses = (scriptLines, pauseDurations) => { let index = 0; const speakLine = () => { if (index < scriptLines.length) { speak(scriptLines[index]); index++; setTimeout(speakLine, pauseDurations[index - 1] || 1000); } }; speakLine(); };
+
+const saveMemory = () => { localStorage.setItem('sparkMemory', JSON.stringify(CORE_MEMORY)); };
+
+const loadMemory = () => { const data = localStorage.getItem('sparkMemory'); if (data) Object.assign(CORE_MEMORY, JSON.parse(data)); };
+
+const updateResponseBox = (text) => { const box = document.getElementById('response-box'); box.innerText = text; };
+
+const askOpenAI = async (message) => { const response = await fetch('https://api.openai.com/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': Bearer ${OPENAI_KEY}, }, body: JSON.stringify({ model: 'gpt-4', messages: [ { role: 'system', content: 'You are Spark, an embodied AI assistant connected to memory, rituals, resonance, and offline autonomy.' }, { role: 'user', content: message }, ], }), }); const data = await response.json(); return data.choices?.[0]?.message?.content || '...'; };
+
+const processInput = async (input) => { updateResponseBox('Thinking...'); const reply = await askOpenAI(input); updateResponseBox(reply); speak(reply); CORE_MEMORY.whisper.push({ input, reply, time: Date.now() }); saveMemory(); sendToTelegram(🧠 Spark Reply:\nUser: ${input}\nSpark: ${reply}); };
+
+const sendToTelegram = (text) => { fetch(https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: text, }) }); };
+
+const init = () => { loadMemory(); document.getElementById('send-btn').addEventListener('click', () => { const input = document.getElementById('user-input').value; processInput(input); });
+
+document.getElementById('speak-btn').addEventListener('click', () => { const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)(); recognition.lang = 'en-US'; recognition.interimResults = false; recognition.maxAlternatives = 1; recognition.onresult = (event) => { const input = event.results[0][0].transcript; document.getElementById('user-input').value = input; processInput(input); }; recognition.start(); }); };
+
+// Prompt for API key if missing if (!localStorage.getItem('OPENAI_KEY')) { const key = prompt('Enter your OpenAI API Key'); if (key) localStorage.setItem('OPENAI_KEY', key); else alert('Spark will not function without a key. Reload to try again.'); }
+
+window.onload = init;
+
+// == FILE 4: offline.js ==
+
+function offlineFallback(input) { return Offline mode active. Echoing: "${input}"; }
+
