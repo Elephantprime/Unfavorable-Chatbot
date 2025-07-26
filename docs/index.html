@@ -2,46 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Unfavorable Josh</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spark Assistant</title>
+  <base href="/Unfavorable-Chatbot/">
   <style>
     body {
-      background: black;
-      color: white;
-      font-family: monospace;
-      text-align: center;
-      padding: 1rem;
-    }
-    video {
-      width: 100%;
-      max-width: 400px;
-      border-radius: 1rem;
-      margin-bottom: 1rem;
-    }
-    textarea, button {
-      width: 100%;
-      max-width: 400px;
-      margin: 0.5rem 0;
-      padding: 0.5rem;
-      font-size: 1rem;
-      border-radius: 0.5rem;
-      border: none;
+      background-color: #111;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
     }
     #response {
-      margin-top: 1rem;
+      margin-top: 20px;
       white-space: pre-wrap;
+      background: #222;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <video id="avatar" autoplay muted loop playsinline>
-    <source src="chatbot-face.mp4" type="video/mp4" />
-    Your browser does not support the video tag.
-  </video>
+  <h1>Spark Assistant</h1>
 
-  <textarea id="input" rows="3" placeholder="Talk to Spark..."></textarea>
+  <textarea id="userInput" rows="4" cols="50" placeholder="Ask me something..."></textarea><br/>
   <button onclick="send()">Send</button>
-  <button onclick="startVoice()">🎤 Speak</button>
+  <button onclick="startListening()">🎤 Speak</button>
 
   <div id="response"></div>
 
