@@ -1,57 +1,45 @@
-let apiKey = localStorage.getItem("openai_api_key") || "";
-
-function startListening() {
-  const recognition = new webkitSpeechRecognition() || new SpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.onresult = function (event) {
-    const transcript = event.results[0][0].transcript;
-    document.getElementById("input").value = transcript;
-    processInput();
-  };
-  recognition.start();
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  margin: 0;
+  padding: 0;
+  text-align: center;
 }
 
-async function processInput() {
-  const input = document.getElementById("input").value.trim();
-  if (!input) return;
-
-  if (input.toLowerCase().startsWith("set api key")) {
-    apiKey = input.split("set api key")[1].trim();
-    localStorage.setItem("openai_api_key", apiKey);
-    display("API key set.");
-    return;
-  }
-
-  if (!apiKey) {
-    display("No API key set. Say or type: set api key [your_key]");
-    return;
-  }
-
-  display("Thinking...");
-
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4",
-      messages: [{ role: "user", content: input }],
-    }),
-  });
-
-  const data = await response.json();
-  const reply = data.choices?.[0]?.message?.content || "No response.";
-  display(reply);
-  speak(reply);
+.container {
+  max-width: 500px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-function display(text) {
-  document.getElementById("output").innerText = text;
+textarea {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  resize: none;
 }
 
-function speak(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  speechSynthesis.speak(utterance);
+button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #333;
+  color: white;
+  border-radius: 8px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #555;
+}
+
+#response {
+  margin-top: 20px;
+  white-space: pre-wrap;
 }
