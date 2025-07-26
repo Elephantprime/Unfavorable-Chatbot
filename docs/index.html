@@ -1,69 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Spark Assistant</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h2>Spark Assistant</h2>
-    <textarea id="prompt" placeholder="Speak or type..."></textarea><br>
-    <button onclick="sendPrompt()">Send</button>
-    <button onclick="startListening()">🎤 Speak</button>
+    <h1>Spark Assistant</h1>
+    <textarea id="input" placeholder="Speak or type here..."></textarea>
+    <button onclick="startRecognition()">🎤 Speak</button>
+    <button onclick="sendMessage()">➤ Send</button>
     <div id="response"></div>
   </div>
 
   <script src="memory.js"></script>
   <script>
-    const apiKey = localStorage.getItem("openai_api_key");
+    const inputField = document.getElementById("input");
+    const responseDiv = document.getElementById("response");
 
-    function speak(text) {
-      const msg = new SpeechSynthesisUtterance(text);
-      speechSynthesis.speak(msg);
-    }
-
-    async function sendPrompt() {
-      const prompt = document.getElementById("prompt").value;
-      const responseBox = document.getElementById("response");
-      responseBox.innerText = "Thinking...";
-
-      if (!apiKey) {
-        responseBox.innerText = "API key not set.";
+    async function sendMessage() {
+      const input = inputField.value.trim();
+      if (!input) return;
+      const apiKey = getAPIKey();
+      if (!apiKey) return responseDiv.innerText = "No API key set. Type: set api key YOUR_KEY";
+      if (input.toLowerCase().startsWith("set api key")) {
+        const key = input.split(" ").pop().trim();
+        saveAPIKey(key);
+        responseDiv.innerText = "API key saved.";
+        inputField.value = "";
         return;
       }
 
-      try {
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: "gpt-4",
-            messages: [{ role: "user", content: prompt }]
-          })
-        });
-
-        const data = await res.json();
-        const reply = data.choices?.[0]?.message?.content || "No reply.";
-        responseBox.innerText = reply;
-        speak(reply);
-      } catch (err) {
-        responseBox.innerText = "Error: " + err.message;
+      const ritualMatches = matchRituals(input);
+      const codexResponse = handleCodex(input);
+      if (codexResponse) {
+        speak(codexResponse);
+        responseDiv.innerText = codexResponse;
+        addToMemory(input, codexResponse);
+        return;
       }
+
+      responseDiv.innerText = "Thinking...";
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4",
+          messages: [{ role: "user", content: input }]
+        })
+      });
+
+      const data = await res.json();
+      const output = data?.choices?.[0]?.message?.content || "No response.";
+      speak(output);
+      responseDiv.innerText = output;
+      addToMemory(input, output);
+      inputField.value = "";
     }
 
-    function startListening() {
-      const recognition = new webkitSpeechRecognition() || new SpeechRecognition();
-      recognition.lang = "en-US";
+    function speak(text) {
+      const synth = window.speechSynthesis;
+      const utter = new SpeechSynthesisUtterance(text);
+      synth.speak(utter);
+    }
+
+    const recognition = new(window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onresult = function (event) {
+      inputField.value = event.results[0][0].transcript;
+      sendMessage();
+    };
+
+    function startRecognition() {
       recognition.start();
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        document.getElementById("prompt").value = transcript;
-        sendPrompt();
-      };
     }
   </script>
 </body>
