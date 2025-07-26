@@ -1,46 +1,57 @@
-body {
-  background-color: #111;
-  color: #eee;
-  font-family: sans-serif;
-  margin: 0;
-  padding: 0;
+let apiKey = localStorage.getItem("openai_api_key") || "";
+
+function startListening() {
+  const recognition = new webkitSpeechRecognition() || new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.onresult = function (event) {
+    const transcript = event.results[0][0].transcript;
+    document.getElementById("input").value = transcript;
+    processInput();
+  };
+  recognition.start();
 }
 
-.container {
-  padding: 2em;
-  max-width: 600px;
-  margin: auto;
+async function processInput() {
+  const input = document.getElementById("input").value.trim();
+  if (!input) return;
+
+  if (input.toLowerCase().startsWith("set api key")) {
+    apiKey = input.split("set api key")[1].trim();
+    localStorage.setItem("openai_api_key", apiKey);
+    display("API key set.");
+    return;
+  }
+
+  if (!apiKey) {
+    display("No API key set. Say or type: set api key [your_key]");
+    return;
+  }
+
+  display("Thinking...");
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [{ role: "user", content: input }],
+    }),
+  });
+
+  const data = await response.json();
+  const reply = data.choices?.[0]?.message?.content || "No response.";
+  display(reply);
+  speak(reply);
 }
 
-textarea {
-  width: 100%;
-  height: 100px;
-  padding: 1em;
-  font-size: 1em;
-  background-color: #222;
-  color: #fff;
-  border: none;
-  resize: none;
-  margin-bottom: 1em;
+function display(text) {
+  document.getElementById("output").innerText = text;
 }
 
-button {
-  background-color: #333;
-  color: white;
-  border: none;
-  padding: 0.8em 1.2em;
-  margin-right: 0.5em;
-  cursor: pointer;
-  font-size: 1em;
-}
-
-button:hover {
-  background-color: #444;
-}
-
-#output {
-  margin-top: 1em;
-  padding: 1em;
-  background: #1a1a1a;
-  white-space: pre-wrap;
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(utterance);
 }
