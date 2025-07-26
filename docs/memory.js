@@ -1,66 +1,75 @@
-let API_KEY = localStorage.getItem("OPENAI_KEY") || "";
+// === SPARK ASSISTANT: MEMORY CORE ===
 
-const CORE_MEMORY = {
-  soulMatch: "ElianVeritas",
-  codexUnlocked: true,
-  ritualGate: "Obsidian",
-  chatHistory: []
-};
+let conversationLog = [];
+let apiKey = localStorage.getItem("openai_api_key") || "";
 
-const input = document.getElementById("input");
+// DOM elements
+const userInput = document.getElementById("userInput");
 const responseBox = document.getElementById("response");
 
-function saveMemory(entry) {
-  CORE_MEMORY.chatHistory.push(entry);
-  localStorage.setItem("chatHistory", JSON.stringify(CORE_MEMORY.chatHistory));
-}
-
-function loadMemory() {
-  const stored = localStorage.getItem("chatHistory");
-  if (stored) {
-    CORE_MEMORY.chatHistory = JSON.parse(stored);
-  }
-}
-
+// === Main Send Function ===
 async function send() {
-  const userMessage = input.value.trim();
-  if (!userMessage || !API_KEY) {
-    responseBox.innerText = "⚠️ Missing input or API key.";
-    return;
+  const prompt = userInput.value.trim();
+  if (!prompt) return;
+
+  conversationLog.push({ role: "user", content: prompt });
+  updateDisplay("Thinking...");
+
+  const res = await queryGPT(conversationLog);
+  if (res) {
+    conversationLog.push({ role: "assistant", content: res });
+    updateDisplay(res);
+    speak(res);
   }
+}
 
-  input.value = "";
-  responseBox.innerText = "⚡️ Receiving...";
-  saveMemory({ role: "user", content: userMessage });
-
-  const body = {
-    model: "gpt-4",
-    messages: [...CORE_MEMORY.chatHistory, { role: "user", content: userMessage }],
-    temperature: 0.85
-  };
+// === GPT API Request ===
+async function queryGPT(log) {
+  if (!apiKey) {
+    updateDisplay("⚠️ No API key set. Say: set API key");
+    return null;
+  }
 
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const raw = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: log,
+        temperature: 0.7
+      })
     });
 
-    const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || "⚠️ No response.";
-
-    responseBox.innerText = reply;
-    speak(reply);
-    saveMemory({ role: "assistant", content: reply });
-
-  } catch (e) {
-    responseBox.innerText = "⚠️ Error: " + e.message;
+    const data = await raw.json();
+    return data.choices?.[0]?.message?.content || "[No response]";
+  } catch (err) {
+    updateDisplay("❌ API ERROR");
+    return null;
   }
 }
 
+// === Voice Input ===
+function startListening() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "en-US";
+  recognition.start();
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    userInput.value = transcript;
+    send();
+  };
+
+  recognition.onerror = (err) => {
+    updateDisplay("🎤 Voice error: " + err.error);
+  };
+}
+
+// === Voice Output ===
 function speak(text) {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = 1;
@@ -68,24 +77,26 @@ function speak(text) {
   speechSynthesis.speak(utterance);
 }
 
-function startVoice() {
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US";
-  recognition.onresult = event => {
-    const transcript = event.results[0][0].transcript;
-    input.value = transcript;
+// === Display Handler ===
+function updateDisplay(msg) {
+  responseBox.innerText = msg;
+}
+
+// === Voice Commands ===
+userInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
     send();
-  };
-  recognition.start();
-}
-
-function setKey() {
-  const newKey = prompt("Paste your OpenAI API key:");
-  if (newKey) {
-    localStorage.setItem("OPENAI_KEY", newKey);
-    API_KEY = newKey;
-    alert("✅ Key saved. You’re good to go.");
   }
-}
 
-loadMemory();
+  // Voice command: "Set API key"
+  if (userInput.value.toLowerCase().startsWith("set api key")) {
+    const key = userInput.value.split(" ").slice(3).join(" ").trim();
+    if (key.startsWith("sk-")) {
+      localStorage.setItem("openai_api_key", key);
+      apiKey = key;
+      updateDisplay("✅ API key saved.");
+      userInput.value = "";
+    }
+  }
+});
