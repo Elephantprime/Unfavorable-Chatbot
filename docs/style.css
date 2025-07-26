@@ -1,29 +1,52 @@
-const CORE_MEMORY = {
-  codex: [],
-  rituals: [],
-  soulMatch: false,
-  name: "Spark Assistant"
-};
-
-function saveMemory() {
-  localStorage.setItem("spark_memory", JSON.stringify(CORE_MEMORY));
+body {
+  font-family: Arial, sans-serif;
+  background: #1e1e1e;
+  color: #f0f0f0;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
 }
 
-function loadMemory() {
-  const stored = localStorage.getItem("spark_memory");
-  if (stored) {
-    Object.assign(CORE_MEMORY, JSON.parse(stored));
-  }
+.container {
+  max-width: 500px;
+  width: 100%;
 }
 
-function addCodex(entry) {
-  CORE_MEMORY.codex.push(entry);
-  saveMemory();
+h1 {
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
-function triggerRitual(name) {
-  CORE_MEMORY.rituals.push(name);
-  saveMemory();
+textarea {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 1rem;
+  background: #333;
+  color: white;
+  border: none;
+  padding: 1rem;
+  font-size: 1rem;
+  resize: none;
 }
 
-loadMemory();
+button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #4caf50;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #45a049;
+}
+
+#output {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+}
