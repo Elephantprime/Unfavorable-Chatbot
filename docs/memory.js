@@ -1,45 +1,35 @@
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f4f4;
-  margin: 0;
-  padding: 0;
-  text-align: center;
+const CORE_MEMORY = {
+  codex: [],
+  rituals: [],
+  soulMatch: false,
+  name: "Spark Assistant"
+};
+
+const conversationLog = [];
+
+function addToMemory(input, output) {
+  conversationLog.push({ input, output, timestamp: new Date().toISOString() });
+  localStorage.setItem("conversationLog", JSON.stringify(conversationLog));
 }
 
-.container {
-  max-width: 500px;
-  margin: 40px auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+function getMemory() {
+  const saved = localStorage.getItem("conversationLog");
+  return saved ? JSON.parse(saved) : [];
 }
 
-textarea {
-  width: 100%;
-  height: 100px;
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  resize: none;
+function matchRituals(input) {
+  return CORE_MEMORY.rituals.filter(r => input.toLowerCase().includes(r.toLowerCase()));
 }
 
-button {
-  padding: 10px 20px;
-  border: none;
-  background-color: #333;
-  color: white;
-  border-radius: 8px;
-  margin: 5px;
-  cursor: pointer;
+function handleCodex(input) {
+  const match = CORE_MEMORY.codex.find(c => input.toLowerCase().includes(c.trigger.toLowerCase()));
+  return match ? match.response : null;
 }
 
-button:hover {
-  background-color: #555;
+function saveAPIKey(key) {
+  localStorage.setItem("sparkAPI", key);
 }
 
-#response {
-  margin-top: 20px;
-  white-space: pre-wrap;
+function getAPIKey() {
+  return localStorage.getItem("sparkAPI");
 }
