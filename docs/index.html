@@ -75,26 +75,6 @@
       padding: 8px 12px;
       cursor: pointer;
     }
-    #avatarImage {
-      margin-top: 20px;
-      width: 800px;
-      height: 1000px;
-      background-color: #333;
-      border-radius: 50%;
-      box-shadow: 0 0 15px #0ff;
-      object-fit: cover;
-    }
-    .alive {
-      box-shadow: 0 0 20px #0f0;
-    }
-    .pulse {
-      animation: pulse 1s ease-in-out;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 20px #0f0; }
-      50% { box-shadow: 0 0 40px #0ff; }
-      100% { box-shadow: 0 0 20px #0f0; }
-    }
     .hidden { display: none; }
   </style>
 </head>
@@ -107,7 +87,6 @@
   </div>
 
   <div id="main">
-    <img id="avatarImage" src="cartoon_persona.png" alt="Avatar">
     <div id="chatBox"></div>
     <button id="expandChatBtn" style="font-size: 10px; padding: 2px 6px; margin-top: 4px;">🔍</button>
     <div id="controls">
