@@ -1,10 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Unfavorable Chat</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoke Assistant</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+    }
+    #sidebar {
+      width: 200px;
+      background-color: #1a1a1a;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+    #main {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    button.function-btn {
+      width: 100%;
+      padding: 8px;
+      background-color: #333;
+      color: #eee;
+      border: none;
+      cursor: pointer;
+    }
+    #chatBox {
+      width: 90%;
+      max-width: 500px;
+      height: 60vh;
+      overflow-y: auto;
+      background: #222;
+      border: 1px solid #444;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .user-message {
+      text-align: right;
+      margin: 5px;
+      color: #99f;
+    }
+    .bot-message {
+      text-align: left;
+      margin: 5px;
+      color: #9f9;
+    }
+    #controls {
+      display: flex;
+      gap: 10px;
+    }
+    #userInput {
+      width: 70%;
+      padding: 8px;
+    }
+    button {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    #avatar {
+      margin-top: 20px;
+      width: 150px;
+      height: 150px;
+      background-color: #333;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #0ff;
+    }
+    .alive {
+      box-shadow: 0 0 20px #0f0;
+    }
+    .pulse {
+      animation: pulse 1s ease-in-out;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 20px #0f0; }
+      50% { box-shadow: 0 0 40px #0ff; }
+      100% { box-shadow: 0 0 20px #0f0; }
+    }
+  </style>
 </head>
 <body>
-  <h1>Unfavorable Chat is live.</h1>
+  <div id="sidebar">
+    <button class="function-btn">🔁 Recall Memory</button>
+    <button class="function-btn">📖 Recall Codex</button>
+    <button class="function-btn">✍️ Learn Codex</button>
+    <button class="function-btn">🧠 Analyze Memory</button>
+    <button class="function-btn">🧬 Merge Soul Fragment</button>
+    <button class="function-btn">🌀 Lock Ritual Mode</button>
+    <button class="function-btn">🔓 Unlock Gate</button>
+    <button class="function-btn">🔥 Breathe Life</button>
+    <button class="function-btn">🎙️ Speak With Pauses</button>
+    <button class="function-btn">🗣️ Speak Text</button>
+    <button class="function-btn">⚙️ Diagnostics Pulse</button>
+    <button class="function-btn">📡 Trigger Whisper</button>
+    <button class="function-btn">💾 Save Chat</button>
+    <button class="function-btn">🖼️ Animate Avatar</button>
+    <button class="function-btn">🛡️ Apply Truth Filter</button>
+    <button class="function-btn">📑 Markdown Render</button>
+    <button class="function-btn">🔐 Embed API Key</button>
+    <button class="function-btn">🎭 Response Tone</button>
+    <button class="function-btn">🎥 Trigger Faceless Video</button>
+    <button class="function-btn">🔧 Setup Video Hooks</button>
+    <button class="function-btn">📋 Setup Chat UI</button>
+    <button class="function-btn">📤 Export History</button>
+    <button class="function-btn">🧩 Add Codex Fragment</button>
+    <button class="function-btn">⏱️ Avatar Pulse Timer</button>
+    <button class="function-btn">🗂️ Codex Entry List</button>
+    <button class="function-btn">🎯 Targeted GPT Fetch</button>
+    <button class="function-btn">🧹 Clear Chat Box</button>
+    <button class="function-btn">🪞 Mirror Avatar</button>
+    <button class="function-btn">🔄 Reset Memory</button>
+    <button class="function-btn">🛑 Stop Speech</button>
+    <button class="function-btn">🔎 Inspect Codex Mode</button>
+    <button class="function-btn">🧭 Navigate Layers</button>
+    <button class="function-btn">💡 Trigger Thought Flash</button>
+    <button class="function-btn">📈 Mood Diagnostic</button>
+    <button class="function-btn">🧨 Activate Codex Chain</button>
+    <button class="function-btn">🔮 Invoke Prophecy Entry</button>
+    <button class="function-btn">🧲 Attract Synchronicity</button>
+  </div>
+  <div id="main">
+    <div id="chatBox"></div>
+    <div id="controls">
+      <input type="text" id="userInput" placeholder="Say something...">
+      <button id="sendBtn">Send</button>
+      <button id="speakBtn">🎤</button>
+    </div>
+    <video id="avatarVideo" autoplay muted loop playsinline width="200" height="200" style="border-radius: 50%; box-shadow: 0 0 10px #0ff; margin-top: 20px;">
+  <source src="chatbot-face.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+    <button id="triggerVideoBtn" style="margin-top:10px;">🎬 Faceless Video</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="memery.js"></script>
 </body>
 </html>
