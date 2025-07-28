@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Invoke Assistant</title>
   <style>
     body {
@@ -157,9 +157,9 @@
       const data = await res.json();
       if (!res.ok) {
         console.error("OpenAI API error:", data);
-        return "API error: " + (data.error?.message || "Unknown error");
+        return "API error: " + (data.error && data.error.message ? data.error.message : "Unknown error");
       }
-      return data.choices?.[0]?.message?.content || "No response.";
+      return (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ? data.choices[0].message.content : "No response.";
     }
 
     sendBtn.addEventListener("click", async () => {
