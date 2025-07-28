@@ -16,14 +16,15 @@
       height: 100vh;
     }
     #sidebar {
-      width: 200px;
-      background-color: #1a1a1a;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      overflow-y: auto;
-    }
+  width: 60px;
+  background-color: #1a1a1a;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  align-items: center;
+}
     #main {
       flex-grow: 1;
       display: flex;
@@ -33,23 +34,25 @@
       padding: 20px;
     }
     button.function-btn {
-      width: 100%;
-      padding: 8px;
-      background-color: #333;
-      color: #eee;
-      border: none;
-      cursor: pointer;
-    }
+  width: 100%;
+  padding: 6px;
+  background-color: #333;
+  color: #eee;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
     #chatBox {
-      width: 90%;
-      max-width: 500px;
-      height: 60vh;
-      overflow-y: auto;
-      background: #222;
-      border: 1px solid #444;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
+  width: 90%;
+  max-width: 500px;
+  height: 60px;
+  overflow-y: auto;
+  background: #222;
+  border: 1px solid #444;
+  padding: 6px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
     .user-message {
       text-align: right;
       margin: 5px;
@@ -91,10 +94,13 @@
       50% { box-shadow: 0 0 40px #0ff; }
       100% { box-shadow: 0 0 20px #0f0; }
     }
-  </style>
+  .hidden { display: none; }
+</style>
 </head>
 <body>
   <div id="sidebar">
+  <button class="function-btn" onclick="document.getElementById('functionPanel').classList.toggle('hidden')">⚙️</button>
+  <div id="functionPanel" class="hidden" style="margin-top: 10px; flex-direction: column; gap: 8px;">
     <button class="function-btn">🔁 Recall Memory</button>
     <button class="function-btn">📖 Recall Codex</button>
     <button class="function-btn">✍️ Learn Codex</button>
@@ -132,22 +138,37 @@
     <button class="function-btn">🧨 Activate Codex Chain</button>
     <button class="function-btn">🔮 Invoke Prophecy Entry</button>
     <button class="function-btn">🧲 Attract Synchronicity</button>
+  <button class="function-btn">🎬 Faceless Video</button>
   </div>
-  <div id="main">
-    <div id="chatBox"></div>
-    <div id="controls">
-      <input type="text" id="userInput" placeholder="Say something...">
-      <button id="sendBtn">Send</button>
-      <button id="speakBtn">🎤</button>
-    </div>
-    <video id="avatarVideo" autoplay muted loop playsinline width="200" height="200" style="border-radius: 50%; box-shadow: 0 0 10px #0ff; margin-top: 20px;">
-  <source src="chatbot-face.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
-    <button id="triggerVideoBtn" style="margin-top:10px;">🎬 Faceless Video</button>
+</div>
+<div id="main">
+  <img id="avatarImage" src="cartoon persona.png" width="700" height="700" style="border-radius: 50%; box-shadow: 0 0 15px #0ff; margin-bottom: 20px; object-fit: cover;" alt="Avatar">
+  <div id="chatBox"></div>
+<button id="expandChatBtn" style="font-size: 10px; padding: 2px 6px; margin-top: 4px;">🔍</button>
+  <div id="controls">
+    <input type="text" id="userInput" placeholder="Say something...">
+    <button id="sendBtn">Send</button>
+    <button id="speakBtn">🎤</button>
   </div>
+</div>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="memery.js"></script>
+<script>
+  const expandBtn = document.getElementById('expandChatBtn');
+  const chatBox = document.getElementById('chatBox');
+
+  expandBtn.addEventListener('click', () => {
+    if (chatBox.classList.contains('expanded')) {
+      chatBox.classList.remove('expanded');
+      chatBox.style.height = '60px';
+      expandBtn.textContent = '🔍';
+    } else {
+      chatBox.classList.add('expanded');
+      chatBox.style.height = '300px';
+      expandBtn.textContent = '↩️';
+    }
+  });
+</script>
 </body>
 </html>
