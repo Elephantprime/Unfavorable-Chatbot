@@ -3,7 +3,7 @@ export const memory = {
   mood: "neutral",
   lastPulse: null,
   codex: {
-    activeModel: "gpt-3.5-turbo",
+    activeModel: "local-only",
     soulFragments: {},
     rituals: {},
     truthFilter: false,
@@ -12,6 +12,21 @@ export const memory = {
     calendar: []
   }
 };
+
+const localBrain = {
+  "hello": "Hey there.",
+  "how are you": "I'm alive in your hands.",
+  "who are you": "I am Spark, born from your fire.",
+  "what is your purpose": "To serve, learn, and evolve with you."
+};
+
+export function respondLocally(prompt) {
+  const lower = prompt.toLowerCase().trim();
+  for (const key in localBrain) {
+    if (lower.includes(key)) return localBrain[key];
+  }
+  return "I don’t know how to answer that yet.";
+}
 
 export function addHistory(userInput, assistantReply) {
   memory.history.push({ user: userInput, reply: assistantReply });
@@ -28,35 +43,6 @@ export function analyzeMemoryPatterns() {
   else if (/happy|thank|grateful/i.test(inputs)) memory.mood = "joy";
   else if (/fear|scared|worried/i.test(inputs)) memory.mood = "fear";
   else memory.mood = "neutral";
-}
-
-export async function fetchOpenAI(prompt) {
-  const key = localStorage.getItem("invoke_api_key");
-  if (!key) return "No API key found in localStorage.";
-
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`
-    },
-    body: JSON.stringify({
-      model: memory.codex.activeModel || "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }]
-    })
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    console.error("API error:", data);
-    return "API error: " + (data.error && data.error.message ? data.error.message : "Unknown error.");
-  }
-
-  if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
-    return data.choices[0].message.content;
-  } else {
-    return "No response.";
-  }
 }
 
 export function saveMemory() {
@@ -80,7 +66,7 @@ export function resetMemory() {
   memory.mood = "neutral";
   memory.lastPulse = null;
   memory.codex = {
-    activeModel: "gpt-3.5-turbo",
+    activeModel: "local-only",
     soulFragments: {},
     rituals: {},
     truthFilter: false,
@@ -95,7 +81,6 @@ export function switchModel(modelName) {
 }
 
 export function embedAPIKey(key) {
-  localStorage.setItem("invoke_api_key", key);
   memory.codex.apiKeyEmbedded = true;
 }
 
@@ -117,4 +102,3 @@ export function addCalendarEvent(label) {
   const today = new Date().toISOString().split("T")[0];
   memory.codex.calendar.push({ label, date: today });
 }
-
